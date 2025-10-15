@@ -1,0 +1,269 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import '../../data/models/animal_model.dart';
+import '../../data/models/grupo_model.dart';
+import '../../data/services/animal_service.dart';
+import '../../data/services/grupo_service.dart';
+
+class AnimalFormController extends GetxController {
+  final AnimalService _animalService = AnimalService();
+  final GrupoService _grupoService = GrupoService();
+
+  // Controllers
+  final brincoController = TextEditingController();
+  final nomeController = TextEditingController();
+  final racaController = TextEditingController();
+  final tipoPeleController = TextEditingController();
+  final pesoController = TextEditingController();
+  final urlImagemController = TextEditingController();
+  final observacoesController = TextEditingController();
+
+  // Estado
+  var isLoading = false.obs;
+  var isEditMode = false.obs;
+  var criarOutro = false.obs; // NOVO: flag para criar outro
+  AnimalModel? animalOriginal;
+
+  // Dropdowns
+  var grupos = <GrupoModel>[].obs;
+  var possiveisPais = <AnimalModel>[].obs;
+  var possiveisMaes = <AnimalModel>[].obs;
+
+  var grupoSelecionado = Rxn<String>();
+  var sexoSelecionado = 'M'.obs;
+  var paiSelecionado = Rxn<String>();
+  var maeSelecionada = Rxn<String>();
+  var dataNascimento = Rxn<DateTime>();
+
+  final sexos = ['M', 'F'];
+  final racas = [
+    'Nelore',
+    'Angus',
+    'Brahman',
+    'Gir',
+    'Guzerá',
+    'Cruzado',
+    'Outros'
+  ];
+
+  @override
+  void onInit() {
+    super.onInit();
+    carregarDados();
+
+    if (Get.arguments != null && Get.arguments is AnimalModel) {
+      animalOriginal = Get.arguments;
+      isEditMode.value = true;
+      preencherFormulario(animalOriginal!);
+    } else {
+      dataNascimento.value = DateTime.now();
+    }
+  }
+
+  Future<void> carregarDados() async {
+    try {
+      print('Carregando grupos...');
+      grupos.value = await _grupoService.listarGrupos();
+      print('Grupos carregados: ${grupos.length}');
+
+      print('Carregando pais...');
+      possiveisPais.value = await _animalService.listarPossiveisPais();
+      print('Pais carregados: ${possiveisPais.length}');
+
+      print('Carregando mães...');
+      possiveisMaes.value = await _animalService.listarPossiveisMaes();
+      print('Mães carregadas: ${possiveisMaes.length}');
+    } catch (e) {
+      print('ERRO DETALHADO: $e');
+      Get.snackbar('Erro', 'Erro ao carregar dados: $e',
+          snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void preencherFormulario(AnimalModel animal) {
+    brincoController.text = animal.brinco;
+    nomeController.text = animal.nome ?? '';
+    racaController.text = animal.raca ?? '';
+    tipoPeleController.text = animal.tipoPele ?? '';
+    pesoController.text =
+        animal.pesoAtualKg != null ? animal.pesoAtualKg.toString() : '';
+    urlImagemController.text = animal.urlImagem ?? '';
+    observacoesController.text = animal.observacoes ?? '';
+
+    grupoSelecionado.value = animal.grupoId;
+    sexoSelecionado.value = animal.sexo;
+    paiSelecionado.value = animal.paiId;
+    maeSelecionada.value = animal.maeId;
+    dataNascimento.value = animal.dataNascimento;
+  }
+
+  void limparFormulario() {
+    brincoController.clear();
+    nomeController.clear();
+    racaController.clear();
+    tipoPeleController.clear();
+    pesoController.clear();
+    urlImagemController.clear();
+    observacoesController.clear();
+
+    grupoSelecionado.value = null;
+    sexoSelecionado.value = 'M';
+    paiSelecionado.value = null;
+    maeSelecionada.value = null;
+    dataNascimento.value = DateTime.now();
+  }
+
+  Future<void> salvar() async {
+    if (!validarFormulario()) return;
+
+    try {
+      isLoading.value = true;
+
+      final animal = AnimalModel(
+        id: animalOriginal?.id,
+        brinco: brincoController.text.trim(),
+        nome: nomeController.text.trim().isEmpty
+            ? null
+            : nomeController.text.trim(),
+        grupoId: grupoSelecionado.value,
+        paiId: paiSelecionado.value,
+        maeId: maeSelecionada.value,
+        sexo: sexoSelecionado.value,
+        tipoPele: tipoPeleController.text.trim().isEmpty
+            ? null
+            : tipoPeleController.text.trim(),
+        raca: racaController.text.trim().isEmpty
+            ? null
+            : racaController.text.trim(),
+        dataNascimento: dataNascimento.value!,
+        pesoAtualKg: pesoController.text.trim().isEmpty
+            ? null
+            : double.tryParse(pesoController.text.trim()),
+        dataUltimaPesagem:
+            pesoController.text.trim().isEmpty ? null : DateTime.now(),
+        urlImagem: urlImagemController.text.trim().isEmpty
+            ? null
+            : urlImagemController.text.trim(),
+        observacoes: observacoesController.text.trim().isEmpty
+            ? null
+            : observacoesController.text.trim(),
+        status: 'ativo',
+      );
+
+      if (isEditMode.value) {
+        await _animalService.atualizar(animalOriginal!.id!, animal);
+        Get.snackbar(
+          '✅ Sucesso',
+          'Animal atualizado com sucesso!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+        Get.back(result: true);
+      } else {
+        await _animalService.criar(animal);
+        Get.snackbar(
+          '✅ Sucesso',
+          'Animal "${animal.brinco}" criado com sucesso!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+
+        // NOVO: Se marcou "criar outro", limpa form, senão volta
+        if (criarOutro.value) {
+          limparFormulario();
+          Get.snackbar(
+            '📝 Pronto',
+            'Preencha os dados do próximo animal',
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 1),
+          );
+        } else {
+          Get.back(result: true);
+        }
+      }
+    } catch (e) {
+      // Detectar erro de brinco duplicado
+      String errorMessage = e.toString().toLowerCase();
+
+      if (errorMessage.contains('duplicate') ||
+          errorMessage.contains('unique') ||
+          errorMessage.contains('brinco') ||
+          errorMessage.contains('already exists')) {
+        Get.snackbar(
+          '❌ Erro',
+          'Número de brinco repetido',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade600,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.error_outline, color: Colors.white),
+          margin: const EdgeInsets.all(16),
+        );
+      } else {
+        // Outros erros
+        Get.snackbar(
+          '❌ Erro',
+          'Erro ao salvar animal',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade600,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  bool validarFormulario() {
+    if (brincoController.text.trim().isEmpty) {
+      Get.snackbar('Atenção', 'Brinco é obrigatório',
+          snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+
+    if (dataNascimento.value == null) {
+      Get.snackbar('Atenção', 'Data de nascimento é obrigatória',
+          snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> selecionarData(BuildContext context) async {
+    final data = await showDatePicker(
+      context: context,
+      initialDate: dataNascimento.value ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      locale: const Locale('pt', 'BR'),
+    );
+
+    if (data != null) {
+      dataNascimento.value = data;
+    }
+  }
+
+  String formatarData(DateTime? data) {
+    if (data == null) return 'Selecione a data';
+    return DateFormat('dd/MM/yyyy').format(data);
+  }
+
+  @override
+  void onClose() {
+    brincoController.dispose();
+    nomeController.dispose();
+    racaController.dispose();
+    tipoPeleController.dispose();
+    pesoController.dispose();
+    urlImagemController.dispose();
+    observacoesController.dispose();
+    super.onClose();
+  }
+}
