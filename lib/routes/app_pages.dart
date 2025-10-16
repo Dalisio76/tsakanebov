@@ -23,6 +23,12 @@ import 'package:tsakanebov/presentation/bindings/alertas_saude_binding.dart'
     show AlertasSaudeBinding;
 import 'package:tsakanebov/presentation/bindings/relatorio_saude_binding.dart'
     show RelatorioSaudeBinding;
+import 'package:tsakanebov/presentation/bindings/despesas_binding.dart'
+    show DespesasBinding;
+import 'package:tsakanebov/presentation/bindings/despesa_form_binding.dart'
+    show DespesaFormBinding;
+import 'package:tsakanebov/presentation/bindings/relatorio_custos_binding.dart'
+    show RelatorioCustosBinding;
 import 'package:tsakanebov/presentation/views/home_view.dart' show HomeView;
 import 'package:tsakanebov/presentation/views/teste_conexao_view.dart'
     show TesteConexaoView;
@@ -48,6 +54,12 @@ import 'package:tsakanebov/presentation/views/alertas_saude_view.dart'
     show AlertasSaudeView;
 import 'package:tsakanebov/presentation/views/relatorio_saude_view.dart'
     show RelatorioSaudeView;
+import 'package:tsakanebov/presentation/views/despesas_view.dart'
+    show DespesasView;
+import 'package:tsakanebov/presentation/views/despesa_form_view.dart'
+    show DespesaFormView;
+import 'package:tsakanebov/presentation/views/relatorio_custos_view.dart'
+    show RelatorioCustosView;
 
 import 'app_routes.dart';
 
@@ -116,6 +128,21 @@ class AppPages {
       name: AppRoutes.RELATORIO_SAUDE,
       page: () => const RelatorioSaudeView(),
       binding: RelatorioSaudeBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.DESPESAS,
+      page: () => DespesasView(),
+      binding: DespesasBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.DESPESA_FORM,
+      page: () => DespesaFormView(),
+      binding: DespesaFormBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.RELATORIO_CUSTOS,
+      page: () => RelatorioCustosView(),
+      binding: RelatorioCustosBinding(),
     ),
   ];
 }

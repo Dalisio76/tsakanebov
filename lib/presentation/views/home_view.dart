@@ -96,52 +96,61 @@ class HomeView extends GetView<HomeController> {
 
               SizedBox(height: 16),
 
-              // Botão Relatório de Saúde
+              // Botão Despesas
               SizedBox(
                 width: 250,
                 child: ElevatedButton.icon(
-                  onPressed: () => Get.toNamed('/relatorio-saude'),
-                  icon: Icon(Icons.assignment, size: 24),
-                  label: Text('Relatório de Saúde', style: TextStyle(fontSize: 16)),
+                  onPressed: () => Get.toNamed('/despesas'),
+                  icon: Icon(Icons.attach_money, size: 28),
+                  label: Text('Gerenciar Despesas', style: TextStyle(fontSize: 18)),
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.purple.shade400,
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,
                   ),
                 ),
               ),
 
-              SizedBox(height: 8),
+              SizedBox(height: 32),
 
-              // Botão Alertas (menor)
-              SizedBox(
-                width: 250,
-                child: OutlinedButton.icon(
-                  onPressed: () => Get.toNamed('/alertas-saude'),
-                  icon: Icon(Icons.notifications_active, size: 20),
-                  label: Text('Ver Alertas', style: TextStyle(fontSize: 14)),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    side: BorderSide(color: Colors.red.shade400, width: 2),
-                    foregroundColor: Colors.red.shade400,
+              // Botões Secundários
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Botão Alertas
+                  OutlinedButton.icon(
+                    onPressed: () => Get.toNamed('/alertas-saude'),
+                    icon: Icon(Icons.notifications, size: 20),
+                    label: Text('Alertas'),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
                   ),
-                ),
+                  SizedBox(width: 12),
+
+                  // Botão Relatórios
+                  OutlinedButton.icon(
+                    onPressed: () => Get.toNamed('/relatorio-custos'),
+                    icon: Icon(Icons.assessment, size: 20),
+                    label: Text('Relatórios'),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+
+                  // Botão Teste
+                  OutlinedButton.icon(
+                    onPressed: controller.irParaTeste,
+                    icon: Icon(Icons.wifi, size: 20),
+                    label: Text('Teste'),
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ],
               ),
 
-              SizedBox(height: 16),
-
-              // Botão Teste Conexão
-              SizedBox(
-                width: 250,
-                child: OutlinedButton.icon(
-                  onPressed: controller.irParaTeste,
-                  icon: Icon(Icons.wifi, size: 24),
-                  label: Text('Testar Conexão', style: TextStyle(fontSize: 16)),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

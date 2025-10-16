@@ -1,600 +1,683 @@
-# 💉 RELATÓRIOS DE SAÚDE - VER TODOS OS EVENTOS
+# 💰 MÓDULO CUSTOS - PARTE 3 FINAL
+## Bindings, Rotas e Integração Completa
 
-## 🎮 CONTROLLER
+---
 
-### **Criar `lib/presentation/controllers/relatorio_saude_controller.dart`:**
+## 📁 ESTRUTURA DE ARQUIVOS
+
+```
+lib/
+├── presentation/
+│   └── bindings/
+│       ├── despesas_binding.dart          ← CRIAR
+│       ├── despesa_form_binding.dart      ← CRIAR
+│       └── relatorio_custos_binding.dart  ← CRIAR
+├── routes/
+│   ├── app_routes.dart                    ← EDITAR
+│   └── app_pages.dart                     ← EDITAR
+└── presentation/views/
+    ├── home_view.dart                     ← EDITAR
+    ├── animal_detalhes_view.dart          ← EDITAR (opcional)
+    └── animais_view.dart                  ← EDITAR (opcional)
+```
+
+**Total: 3 arquivos novos + 5 editados**
+
+---
+
+## 📦 ARQUIVO 1/8: despesas_binding.dart
+
+**Caminho:** `lib/presentation/bindings/despesas_binding.dart`
 
 ```dart
 import 'package:get/get.dart';
-import '../../data/models/registro_saude_model.dart';
-import '../../data/models/tipo_evento_saude_model.dart';
-import '../../data/services/registro_saude_service.dart';
-import '../../data/services/tipo_evento_saude_service.dart';
+import '../controllers/despesas_controller.dart';
 
-class RelatorioSaudeController extends GetxController {
-  final RegistroSaudeService _saudeService = RegistroSaudeService();
-  final TipoEventoSaudeService _tipoService = TipoEventoSaudeService();
-
-  var registros = <RegistroSaudeModel>[].obs;
-  var tiposEvento = <TipoEventoSaudeModel>[].obs;
-  var isLoading = false.obs;
-
-  // Filtros
-  var tipoSelecionado = Rxn<String>();
-  var diasFiltro = 30.obs;
-
+class DespesasBinding extends Bindings {
   @override
-  void onInit() {
-    super.onInit();
-    carregarTipos();
-    carregarRegistros();
-  }
-
-  Future<void> carregarTipos() async {
-    try {
-      tiposEvento.value = await _tipoService.listarTodos();
-    } catch (e) {
-      // Silencioso
-    }
-  }
-
-  Future<void> carregarRegistros() async {
-    try {
-      isLoading.value = true;
-      registros.value = await _saudeService.listarRecentes(
-        dias: diasFiltro.value,
-      );
-
-      // Aplicar filtro de tipo se selecionado
-      if (tipoSelecionado.value != null) {
-        registros.value = registros
-            .where((r) => r.tipoEventoId == tipoSelecionado.value)
-            .toList();
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Erro',
-        'Erro ao carregar registros: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  void alterarFiltro(int dias) {
-    diasFiltro.value = dias;
-    carregarRegistros();
-  }
-
-  void filtrarPorTipo(String? tipoId) {
-    tipoSelecionado.value = tipoId;
-    carregarRegistros();
-  }
-
-  void limparFiltros() {
-    tipoSelecionado.value = null;
-    diasFiltro.value = 30;
-    carregarRegistros();
-  }
-
-  // Agrupar por tipo
-  Map<String, List<RegistroSaudeModel>> get registrosPorTipo {
-    final Map<String, List<RegistroSaudeModel>> agrupados = {};
-
-    for (var registro in registros) {
-      final tipo = registro.tipoEventoNome ?? 'Outros';
-      if (!agrupados.containsKey(tipo)) {
-        agrupados[tipo] = [];
-      }
-      agrupados[tipo]!.add(registro);
-    }
-
-    return agrupados;
-  }
-
-  // Estatísticas
-  int get totalEventos => registros.length;
-
-  double get custoTotal {
-    return registros.fold(0.0, (sum, r) => sum + (r.custo ?? 0.0));
-  }
-
-  int get totalAnimais {
-    return registros.map((r) => r.animalId).toSet().length;
+  void dependencies() {
+    Get.lazyPut<DespesasController>(() => DespesasController());
   }
 }
 ```
 
 ---
 
-## 🎨 VIEW
+## 📦 ARQUIVO 2/8: despesa_form_binding.dart
 
-### **Criar `lib/presentation/views/relatorio_saude_view.dart`:**
+**Caminho:** `lib/presentation/bindings/despesa_form_binding.dart`
 
 ```dart
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import '../controllers/relatorio_saude_controller.dart';
+import '../controllers/despesa_form_controller.dart';
 
-class RelatorioSaudeView extends GetView<RelatorioSaudeController> {
+class DespesaFormBinding extends Bindings {
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Relatório de Saúde'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: _mostrarFiltros,
-          ),
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: controller.carregarRegistros,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Estatísticas
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
-            color: Colors.blue.shade50,
-            child: Obx(() => Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatCard(
-                      'Eventos',
-                      controller.totalEventos.toString(),
-                      Icons.medical_services,
-                      Colors.blue,
-                    ),
-                    _buildStatCard(
-                      'Animais',
-                      controller.totalAnimais.toString(),
-                      Icons.pets,
-                      Colors.green,
-                    ),
-                    _buildStatCard(
-                      'Custo Total',
-                      'R\$ ${controller.custoTotal.toStringAsFixed(2)}',
-                      Icons.attach_money,
-                      Colors.orange,
-                    ),
-                  ],
-                )),
-          ),
-
-          // Filtros ativos
-          Obx(() {
-            final temFiltros = controller.tipoSelecionado.value != null;
-
-            if (!temFiltros) return SizedBox.shrink();
-
-            return Container(
-              padding: EdgeInsets.all(8),
-              color: Colors.grey.shade100,
-              child: Row(
-                children: [
-                  if (controller.tipoSelecionado.value != null)
-                    Chip(
-                      label: Text('Tipo filtrado'),
-                      onDeleted: () => controller.filtrarPorTipo(null),
-                    ),
-                  SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: controller.limparFiltros,
-                    icon: Icon(Icons.clear_all, size: 18),
-                    label: Text('Limpar filtros'),
-                  ),
-                ],
-              ),
-            );
-          }),
-
-          // Lista de eventos
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return Center(child: CircularProgressIndicator());
-              }
-
-              if (controller.registros.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.inbox, size: 80, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        'Nenhum evento registrado',
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Ajuste o período ou registre novos eventos',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              // Agrupar por tipo
-              final agrupados = controller.registrosPorTipo;
-
-              return ListView.builder(
-                padding: EdgeInsets.all(16),
-                itemCount: agrupados.length,
-                itemBuilder: (context, index) {
-                  final tipo = agrupados.keys.elementAt(index);
-                  final eventos = agrupados[tipo]!;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Cabeçalho do grupo
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            Text(
-                              eventos.first.iconeCategoria,
-                              style: TextStyle(fontSize: 24),
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              '$tipo (${eventos.length})',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Lista de eventos deste tipo
-                      ...eventos.map((evento) => Card(
-                            margin: EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.blue.shade100,
-                                child: Text(
-                                  evento.animalBrinco?.substring(0, 1) ?? '?',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade700,
-                                  ),
-                                ),
-                              ),
-                              title: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      evento.animalBrinco ?? 'Animal',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  if (evento.proximaAplicacao != null)
-                                    Text(
-                                      evento.iconeAlerta,
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                ],
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    evento.descricao,
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.w500),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        DateFormat('dd/MM/yyyy')
-                                            .format(evento.dataEvento),
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                      if (evento.custo != null) ...[
-                                        SizedBox(width: 8),
-                                        Text(
-                                          '• R\$ ${evento.custo!.toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.green.shade700,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                      if (evento.veterinario != null) ...[
-                                        SizedBox(width: 8),
-                                        Text(
-                                          '• ${evento.veterinario}',
-                                          style: TextStyle(fontSize: 12),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  if (evento.proximaAplicacao != null)
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 4),
-                                      child: Text(
-                                        'Próxima: ${DateFormat('dd/MM/yyyy').format(evento.proximaAplicacao!)}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.orange.shade700,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                              onTap: () {
-                                // Navegar para histórico do animal
-                                Get.toNamed('/historico-saude',
-                                    arguments: evento.animalBrinco);
-                              },
-                            ),
-                          )),
-
-                      SizedBox(height: 16),
-                    ],
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/saude'),
-        child: Icon(Icons.add),
-        tooltip: 'Novo Evento',
-      ),
-    );
+  void dependencies() {
+    Get.lazyPut<DespesaFormController>(() => DespesaFormController());
   }
+}
+```
 
-  Widget _buildStatCard(
-      String label, String value, IconData icon, Color color) {
-    return Column(
+---
+
+## 📦 ARQUIVO 3/8: relatorio_custos_binding.dart
+
+**Caminho:** `lib/presentation/bindings/relatorio_custos_binding.dart`
+
+```dart
+import 'package:get/get.dart';
+import '../controllers/relatorio_custos_controller.dart';
+
+class RelatorioCustosBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<RelatorioCustosController>(() => RelatorioCustosController());
+  }
+}
+```
+
+---
+
+## 📦 ARQUIVO 4/8: app_routes.dart (EDITAR)
+
+**Caminho:** `lib/routes/app_routes.dart`
+
+**Adicione estas linhas no final da classe:**
+
+```dart
+abstract class AppRoutes {
+  // ... rotas existentes ...
+  
+  // Rotas de Grupos
+  static const GRUPOS = '/grupos';
+  static const GRUPO_FORM = '/grupo-form';
+  
+  // Rotas de Animais
+  static const ANIMAIS = '/animais';
+  static const ANIMAL_FORM = '/animal-form';
+  static const ANIMAL_DETALHES = '/animal-detalhes';
+  
+  // Rotas de Pesagem
+  static const PESAGEM = '/pesagem';
+  static const HISTORICO_PESAGEM = '/historico-pesagem';
+  
+  // Rotas de Saúde
+  static const SAUDE = '/saude';
+  static const HISTORICO_SAUDE = '/historico-saude';
+  static const ALERTAS_SAUDE = '/alertas-saude';
+  static const RELATORIO_SAUDE = '/relatorio-saude';
+  
+  // Rotas de Custos ← ADICIONAR ESTAS
+  static const DESPESAS = '/despesas';
+  static const DESPESA_FORM = '/despesa-form';
+  static const RELATORIO_CUSTOS = '/relatorio-custos';
+  
+  // Teste
+  static const TESTE_CONEXAO = '/teste-conexao';
+}
+```
+
+---
+
+## 📦 ARQUIVO 5/8: app_pages.dart (EDITAR)
+
+**Caminho:** `lib/routes/app_pages.dart`
+
+**Adicione estes imports no início do arquivo:**
+
+```dart
+// ... imports existentes ...
+
+// Custos ← ADICIONAR ESTES IMPORTS
+import '../presentation/views/despesas_view.dart';
+import '../presentation/views/despesa_form_view.dart';
+import '../presentation/views/relatorio_custos_view.dart';
+import '../presentation/bindings/despesas_binding.dart';
+import '../presentation/bindings/despesa_form_binding.dart';
+import '../presentation/bindings/relatorio_custos_binding.dart';
+```
+
+**Adicione estas páginas no array `pages`:**
+
+```dart
+class AppPages {
+  static final pages = [
+    // ... páginas existentes ...
+    
+    // Grupos
+    GetPage(
+      name: AppRoutes.GRUPOS,
+      page: () => GruposView(),
+      binding: GruposBinding(),
+    ),
+    // ... outras páginas de grupos ...
+    
+    // Animais
+    GetPage(
+      name: AppRoutes.ANIMAIS,
+      page: () => AnimaisView(),
+      binding: AnimaisBinding(),
+    ),
+    // ... outras páginas de animais ...
+    
+    // Pesagem
+    GetPage(
+      name: AppRoutes.PESAGEM,
+      page: () => PesagemView(),
+      binding: PesagemBinding(),
+    ),
+    // ... outras páginas de pesagem ...
+    
+    // Saúde
+    GetPage(
+      name: AppRoutes.SAUDE,
+      page: () => SaudeView(),
+      binding: SaudeBinding(),
+    ),
+    // ... outras páginas de saúde ...
+    
+    // Custos ← ADICIONAR ESTAS PÁGINAS
+    GetPage(
+      name: AppRoutes.DESPESAS,
+      page: () => DespesasView(),
+      binding: DespesasBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.DESPESA_FORM,
+      page: () => DespesaFormView(),
+      binding: DespesaFormBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.RELATORIO_CUSTOS,
+      page: () => RelatorioCustosView(),
+      binding: RelatorioCustosBinding(),
+    ),
+    
+    // Teste
+    GetPage(
+      name: AppRoutes.TESTE_CONEXAO,
+      page: () => TesteConexaoView(),
+      binding: TesteBinding(),
+    ),
+  ];
+}
+```
+
+---
+
+## 📦 ARQUIVO 6/8: home_view.dart (EDITAR)
+
+**Caminho:** `lib/presentation/views/home_view.dart`
+
+**Substitua o body do Scaffold por este código:**
+
+```dart
+body: Center(
+  child: SingleChildScrollView(
+    padding: EdgeInsets.all(24.0),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, size: 32, color: color),
-        SizedBox(height: 4),
+        // Ícone
         Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+          '🐄',
+          style: TextStyle(fontSize: 80),
         ),
+        SizedBox(height: 20),
+        
+        // Título
         Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade700,
-          ),
+          'Sistema de Gestão de Gado',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
         ),
-      ],
-    );
-  }
-
-  void _mostrarFiltros() {
-    Get.bottomSheet(
-      Container(
-        padding: EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Filtros',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        SizedBox(height: 40),
+        
+        // Botão Grupos
+        SizedBox(
+          width: 250,
+          child: ElevatedButton.icon(
+            onPressed: () => Get.toNamed('/grupos'),
+            icon: Icon(Icons.folder, size: 28),
+            label: Text('Gerenciar Grupos', style: TextStyle(fontSize: 18)),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
             ),
-            SizedBox(height: 20),
-
-            // Filtro por período
-            Text('Período', style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Obx(() => SegmentedButton<int>(
-                  segments: [
-                    ButtonSegment(value: 7, label: Text('7 dias')),
-                    ButtonSegment(value: 30, label: Text('30 dias')),
-                    ButtonSegment(value: 90, label: Text('90 dias')),
-                    ButtonSegment(value: 365, label: Text('1 ano')),
-                  ],
-                  selected: {controller.diasFiltro.value},
-                  onSelectionChanged: (Set<int> selected) {
-                    controller.alterarFiltro(selected.first);
-                  },
-                )),
-
-            SizedBox(height: 16),
-
-            // Filtro por tipo
-            Text('Tipo de Evento',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Obx(() => DropdownButtonFormField<String>(
-                  value: controller.tipoSelecionado.value,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Todos os tipos',
-                  ),
-                  items: [
-                    DropdownMenuItem(value: null, child: Text('Todos')),
-                    ...controller.tiposEvento.map((tipo) => DropdownMenuItem(
-                          value: tipo.id,
-                          child: Row(
-                            children: [
-                              Text(tipo.icone, style: TextStyle(fontSize: 20)),
-                              SizedBox(width: 8),
-                              Text(tipo.nome),
-                            ],
-                          ),
-                        )),
-                  ],
-                  onChanged: (value) {
-                    controller.filtrarPorTipo(value);
-                  },
-                )),
-
-            SizedBox(height: 24),
-
-            // Botões
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      controller.limparFiltros();
-                      Get.back();
-                    },
-                    child: Text('Limpar'),
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Get.back(),
-                    child: Text('Fechar'),
-                  ),
-                ),
-              ],
+          ),
+        ),
+        SizedBox(height: 16),
+        
+        // Botão Animais
+        SizedBox(
+          width: 250,
+          child: ElevatedButton.icon(
+            onPressed: () => Get.toNamed('/animais'),
+            icon: Icon(Icons.pets, size: 28),
+            label: Text('Gerenciar Animais', style: TextStyle(fontSize: 18)),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: 16),
+        
+        // Botão Pesagem
+        SizedBox(
+          width: 250,
+          child: ElevatedButton.icon(
+            onPressed: () => Get.toNamed('/pesagem'),
+            icon: Icon(Icons.monitor_weight, size: 28),
+            label: Text('Registrar Pesagem', style: TextStyle(fontSize: 18)),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: 16),
+        
+        // Botão Saúde
+        SizedBox(
+          width: 250,
+          child: ElevatedButton.icon(
+            onPressed: () => Get.toNamed('/saude'),
+            icon: Icon(Icons.medical_services, size: 28),
+            label: Text('Registrar Saúde', style: TextStyle(fontSize: 18)),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: 16),
+        
+        // Botão Despesas ← NOVO BOTÃO
+        SizedBox(
+          width: 250,
+          child: ElevatedButton.icon(
+            onPressed: () => Get.toNamed('/despesas'),
+            icon: Icon(Icons.attach_money, size: 28),
+            label: Text('Gerenciar Despesas', style: TextStyle(fontSize: 18)),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: 32),
+        
+        // Botões Secundários
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Botão Alertas
+            OutlinedButton.icon(
+              onPressed: () => Get.toNamed('/alertas-saude'),
+              icon: Icon(Icons.notifications, size: 20),
+              label: Text('Alertas'),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+            SizedBox(width: 12),
+            
+            // Botão Relatórios ← NOVO BOTÃO
+            OutlinedButton.icon(
+              onPressed: () => Get.toNamed('/relatorio-custos'),
+              icon: Icon(Icons.assessment, size: 20),
+              label: Text('Relatórios'),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+            SizedBox(width: 12),
+            
+            // Botão Teste
+            OutlinedButton.icon(
+              onPressed: controller.irParaTeste,
+              icon: Icon(Icons.wifi, size: 20),
+              label: Text('Teste'),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-```
-
----
-
-## 🔗 BINDING
-
-### **Criar `lib/presentation/bindings/relatorio_saude_binding.dart`:**
-
-```dart
-import 'package:get/get.dart';
-import '../controllers/relatorio_saude_controller.dart';
-
-class RelatorioSaudeBinding extends Bindings {
-  @override
-  void dependencies() {
-    Get.lazyPut(() => RelatorioSaudeController());
-  }
-}
-```
-
----
-
-## 🛣️ ADICIONAR ROTA
-
-### **Editar `lib/routes/app_routes.dart`:**
-
-Adicionar:
-```dart
-static const String RELATORIO_SAUDE = '/relatorio-saude';
-```
-
-### **Editar `lib/routes/app_pages.dart`:**
-
-Adicionar import:
-```dart
-import '../presentation/views/relatorio_saude_view.dart';
-import '../presentation/bindings/relatorio_saude_binding.dart';
-```
-
-Adicionar rota:
-```dart
-GetPage(
-  name: AppRoutes.RELATORIO_SAUDE,
-  page: () => RelatorioSaudeView(),
-  binding: RelatorioSaudeBinding(),
+      ],
+    ),
+  ),
 ),
 ```
 
 ---
 
-## 🏠 ADICIONAR NA HOME
+## 📦 ARQUIVO 7/8: animal_detalhes_view.dart (EDITAR - OPCIONAL)
 
-### **Editar `lib/presentation/views/home_view.dart`:**
+**Caminho:** `lib/presentation/views/animal_detalhes_view.dart`
 
-Substituir o botão "Ver Alertas" por:
+**Adicione este botão antes do último `SizedBox(height: 16)`:**
 
 ```dart
-// Botão Relatório de Saúde
-SizedBox(
-  width: 250,
+// Antes do último SizedBox(height: 16), adicione:
+
+// Botão Ver Custos
+Padding(
+  padding: EdgeInsets.symmetric(horizontal: 16.0),
   child: ElevatedButton.icon(
-    onPressed: () => Get.toNamed('/relatorio-saude'),
-    icon: Icon(Icons.assignment, size: 24),
-    label: Text('Relatório de Saúde', style: TextStyle(fontSize: 16)),
+    onPressed: () {
+      // Navegar para despesas filtradas por este animal
+      Get.toNamed('/despesas'); // Você pode passar o animal como argumento
+    },
+    icon: Icon(Icons.attach_money),
+    label: Text('Ver Custos deste Animal'),
     style: ElevatedButton.styleFrom(
       padding: EdgeInsets.symmetric(vertical: 16),
-      backgroundColor: Colors.purple.shade400,
-      foregroundColor: Colors.white,
+      backgroundColor: Colors.purple,
+      minimumSize: Size(double.infinity, 50),
     ),
   ),
 ),
+SizedBox(height: 16),
+```
 
-SizedBox(height: 8),
+---
 
-// Botão Alertas (menor)
-SizedBox(
-  width: 250,
-  child: OutlinedButton.icon(
-    onPressed: () => Get.toNamed('/alertas-saude'),
-    icon: Icon(Icons.notifications_active, size: 20),
-    label: Text('Ver Alertas', style: TextStyle(fontSize: 14)),
-    style: OutlinedButton.styleFrom(
-      padding: EdgeInsets.symmetric(vertical: 12),
-      side: BorderSide(color: Colors.red.shade400, width: 2),
-      foregroundColor: Colors.red.shade400,
+## 📦 ARQUIVO 8/8: animais_view.dart (EDITAR - OPCIONAL)
+
+**Caminho:** `lib/presentation/views/animais_view.dart`
+
+**No `PopupMenuButton`, adicione esta opção:**
+
+```dart
+PopupMenuButton(
+  itemBuilder: (context) => [
+    // ... opções existentes ...
+    
+    PopupMenuItem(
+      value: 'detalhes',
+      child: Row(
+        children: [
+          Icon(Icons.info, size: 20),
+          SizedBox(width: 8),
+          Text('Detalhes'),
+        ],
+      ),
     ),
-  ),
+    PopupMenuItem(
+      value: 'historico_peso',
+      child: Row(
+        children: [
+          Icon(Icons.timeline, size: 20),
+          SizedBox(width: 8),
+          Text('Histórico de Peso'),
+        ],
+      ),
+    ),
+    PopupMenuItem(
+      value: 'historico_saude',
+      child: Row(
+        children: [
+          Icon(Icons.medical_services, size: 20),
+          SizedBox(width: 8),
+          Text('Histórico de Saúde'),
+        ],
+      ),
+    ),
+    // ADICIONAR ESTA OPÇÃO ←
+    PopupMenuItem(
+      value: 'custos',
+      child: Row(
+        children: [
+          Icon(Icons.attach_money, size: 20, color: Colors.purple),
+          SizedBox(width: 8),
+          Text('Custos', style: TextStyle(color: Colors.purple)),
+        ],
+      ),
+    ),
+    PopupMenuItem(
+      value: 'editar',
+      child: Row(
+        children: [
+          Icon(Icons.edit, size: 20),
+          SizedBox(width: 8),
+          Text('Editar'),
+        ],
+      ),
+    ),
+    PopupMenuItem(
+      value: 'excluir',
+      child: Row(
+        children: [
+          Icon(Icons.delete, size: 20, color: Colors.red),
+          SizedBox(width: 8),
+          Text('Excluir', style: TextStyle(color: Colors.red)),
+        ],
+      ),
+    ),
+  ],
+  onSelected: (value) {
+    if (value == 'detalhes') {
+      controller.irParaDetalhes(animal);
+    } else if (value == 'historico_peso') {
+      Get.toNamed('/historico-pesagem', arguments: animal);
+    } else if (value == 'historico_saude') {
+      Get.toNamed('/historico-saude', arguments: animal);
+    } else if (value == 'custos') {
+      // ADICIONAR ESTA AÇÃO ←
+      Get.toNamed('/despesas'); // Pode passar animal como argumento para filtrar
+    } else if (value == 'editar') {
+      controller.irParaFormulario(animal);
+    } else if (value == 'excluir') {
+      controller.confirmarExclusao(animal);
+    }
+  },
 ),
 ```
 
 ---
 
-## ✅ CHECKLIST
+## ✅ PARTE 3 COMPLETA!
 
-- [ ] Criar `relatorio_saude_controller.dart`
-- [ ] Criar `relatorio_saude_view.dart`
-- [ ] Criar `relatorio_saude_binding.dart`
-- [ ] Adicionar rota em `app_routes.dart`
-- [ ] Adicionar GetPage em `app_pages.dart`
-- [ ] Atualizar botões na `home_view.dart`
-- [ ] Testar
+### 📊 RESUMO FINAL
 
----
+**Arquivos criados: 3**
+1. ✅ `despesas_binding.dart`
+2. ✅ `despesa_form_binding.dart`
+3. ✅ `relatorio_custos_binding.dart`
 
-## 🧪 TESTAR
-
-```
-1. Home → "Relatório de Saúde"
-✅ Ver estatísticas (eventos, animais, custo)
-✅ Ver lista agrupada por tipo
-✅ Ver todos eventos registrados
-✅ Filtrar por tipo
-✅ Filtrar por período (7/30/90/365 dias)
-```
+**Arquivos editados: 5**
+4. ✅ `app_routes.dart` - Rotas adicionadas
+5. ✅ `app_pages.dart` - Páginas configuradas
+6. ✅ `home_view.dart` - Botão roxo de despesas
+7. ✅ `animal_detalhes_view.dart` - Botão custos (opcional)
+8. ✅ `animais_view.dart` - Menu custos (opcional)
 
 ---
 
-**Crie estes 3 arquivos e edite os outros. Me avise se funcionou!** 📊💉
+## 🎯 MÓDULO CUSTOS - COMPLETO! 
+
+### 📦 TOTAL DE ARQUIVOS
+
+**Parte 1 (Models e Services): 4 arquivos**
+- categoria_custo_model.dart
+- despesa_model.dart
+- categoria_custo_service.dart
+- despesa_service.dart
+
+**Parte 2 (Controllers e Views): 6 arquivos**
+- despesas_controller.dart
+- despesa_form_controller.dart
+- relatorio_custos_controller.dart
+- despesas_view.dart
+- despesa_form_view.dart
+- relatorio_custos_view.dart
+
+**Parte 3 (Bindings e Integração): 8 arquivos**
+- despesas_binding.dart
+- despesa_form_binding.dart
+- relatorio_custos_binding.dart
+- app_routes.dart (editado)
+- app_pages.dart (editado)
+- home_view.dart (editado)
+- animal_detalhes_view.dart (editado - opcional)
+- animais_view.dart (editado - opcional)
+
+**Total: 18 arquivos** ✅
+
+---
+
+## 🎁 FUNCIONALIDADES IMPLEMENTADAS
+
+### ✅ Lista de Despesas
+- Busca em tempo real
+- Filtro por período
+- Card de total destacado
+- Menu de ações (editar/excluir)
+- Pull to refresh
+
+### ✅ Formulário de Despesas
+- Campos obrigatórios: descrição, valor, data
+- Opcionais: categoria, quantidade, unidade, fornecedor, nota fiscal
+- Vinculação: nenhum, animal ou grupo
+- Validações completas
+- Modo criação e edição
+
+### ✅ Relatório de Custos
+- Total gasto no período
+- Estatísticas por categoria (valor e %)
+- Barras de progresso visuais
+- Despesas detalhadas agrupadas
+- Seletor de período (7, 30, 90, 365 dias)
+
+### ✅ Integrações
+- Botão roxo na Home
+- Menu de custos nos animais
+- Botão de custos nos detalhes do animal
+- Botão de relatórios na Home
+
+---
+
+## 🧪 TESTE COMPLETO (10 min)
+
+### **1. Registrar Primeira Despesa** (2 min)
+```
+Home → "Gerenciar Despesas" → "+"
+Descrição: Ração concentrado
+Categoria: Ração/Concentrado
+Valor: 450.00
+Data: Hoje
+Vinculação: Grupo → Engorda - Lote 1
+Quantidade: 50
+Unidade: kg
+Salvar
+✅ "Despesa registrada com sucesso!"
+```
+
+### **2. Registrar Despesa com Animal** (2 min)
+```
+"+" → Nova despesa
+Descrição: Vacina Aftosa
+Categoria: Vacinas
+Valor: 45.00
+Data: Hoje
+Vinculação: Animal → 001
+Salvar
+✅ Aparece na lista
+```
+
+### **3. Buscar e Filtrar** (2 min)
+```
+Buscar: "ração"
+✅ Filtra automaticamente
+
+Filtros → Período: 7 dias
+✅ Mostra apenas últimos 7 dias
+
+Total atualiza automaticamente
+```
+
+### **4. Editar Despesa** (1 min)
+```
+Menu (3 pontos) → Editar
+Mudar valor para 460.00
+Salvar
+✅ "Despesa atualizada!"
+```
+
+### **5. Ver Relatório** (2 min)
+```
+Ícone assessment (topo) → Relatório de Custos
+✅ Ver total gasto
+✅ Ver gráfico por categoria
+✅ Ver despesas detalhadas
+
+Mudar período para 30 dias
+✅ Dados atualizam
+```
+
+### **6. Excluir Despesa** (1 min)
+```
+Menu → Excluir
+Confirmar
+✅ "Despesa excluída com sucesso!"
+```
+
+---
+
+## 🎉 PROGRESSO ATUALIZADO
+
+```
+✅ Setup Inicial (100%)
+✅ Grupos (100%)
+✅ Animais (100%)
+✅ Pesagem + GMD (100%)
+✅ Saúde + Alertas (100%)
+✅ Custos + Despesas (100%) ← NOVO!
+⬜ Reprodução (0%)
+⬜ Dashboard (0%)
+
+Progresso Geral: 75% 🎯
+```
+
+---
+
+## 🚀 EXECUTAR E TESTAR
+
+```bash
+flutter run -d chrome
+# ou pressione 'r' se já estiver rodando
+```
+
+---
+
+## 💬 ME RESPONDA
+
+Após criar todos os arquivos e testar:
+
+**Opção 1 (tudo OK):**
+> "Módulo Custos testado! Tudo funcionando. Qual próximo?"
+
+**Opção 2 (algum erro):**
+> "Erro: [descreva o erro]"
+
+---
+
+## 🎯 PRÓXIMOS MÓDULOS DISPONÍVEIS
+
+1. **🤰 Reprodução** - Coberturas + Prenhez + Partos
+2. **📊 Dashboard** - Visão geral + Gráficos + KPIs
+
+**Ou:**
+- 🧪 Testar tudo profundamente
+- 🎨 Melhorias de UI/UX
+- 📱 Testar em Android/Desktop
+
+**Crie os arquivos da Parte 3 e me avise o resultado!** 💰✨

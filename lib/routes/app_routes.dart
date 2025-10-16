@@ -11,5 +11,11 @@ class AppRoutes {
   static const String HISTORICO_SAUDE = '/historico-saude';
   static const String ALERTAS_SAUDE = '/alertas-saude';
   static const String RELATORIO_SAUDE = '/relatorio-saude';
+
+  // Rotas de Custos
+  static const String DESPESAS = '/despesas';
+  static const String DESPESA_FORM = '/despesa-form';
+  static const String RELATORIO_CUSTOS = '/relatorio-custos';
+
   static const String TESTE_CONEXAO = '/teste';
 }
