@@ -111,6 +111,23 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
 
+              SizedBox(height: 16),
+
+              // Botão Reprodução
+              SizedBox(
+                width: 250,
+                child: ElevatedButton.icon(
+                  onPressed: () => Get.toNamed('/coberturas'),
+                  icon: Icon(Icons.pregnant_woman, size: 28),
+                  label: Text('Reprodução', style: TextStyle(fontSize: 18)),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    backgroundColor: Colors.pink,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+
               SizedBox(height: 32),
 
               // Botões Secundários
@@ -130,7 +147,7 @@ class HomeView extends GetView<HomeController> {
 
                   // Botão Relatórios
                   OutlinedButton.icon(
-                    onPressed: () => Get.toNamed('/relatorio-custos'),
+                    onPressed: _mostrarRelatorios,
                     icon: Icon(Icons.assessment, size: 20),
                     label: Text('Relatórios'),
                     style: OutlinedButton.styleFrom(
@@ -153,6 +170,53 @@ class HomeView extends GetView<HomeController> {
 
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _mostrarRelatorios() {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Relatórios',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.attach_money, color: Colors.purple),
+              title: Text('Relatório de Custos'),
+              onTap: () {
+                Get.back();
+                Get.toNamed('/relatorio-custos');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.pregnant_woman, color: Colors.pink),
+              title: Text('Relatório de Reprodução'),
+              onTap: () {
+                Get.back();
+                Get.toNamed('/relatorio-reproducao');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.medical_services, color: Colors.red),
+              title: Text('Relatório de Saúde'),
+              onTap: () {
+                Get.back();
+                Get.toNamed('/relatorio-saude');
+              },
+            ),
+          ],
         ),
       ),
     );

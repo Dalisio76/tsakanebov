@@ -17,5 +17,14 @@ class AppRoutes {
   static const String DESPESA_FORM = '/despesa-form';
   static const String RELATORIO_CUSTOS = '/relatorio-custos';
 
+  // Rotas de Reprodução
+  static const String COBERTURAS = '/coberturas';
+  static const String COBERTURA_FORM = '/cobertura-form';
+  static const String DIAGNOSTICOS = '/diagnosticos';
+  static const String DIAGNOSTICO_FORM = '/diagnostico-form';
+  static const String PARTOS = '/partos';
+  static const String PARTO_FORM = '/parto-form';
+  static const String RELATORIO_REPRODUCAO = '/relatorio-reproducao';
+
   static const String TESTE_CONEXAO = '/teste';
 }

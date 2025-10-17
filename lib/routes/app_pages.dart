@@ -29,6 +29,20 @@ import 'package:tsakanebov/presentation/bindings/despesa_form_binding.dart'
     show DespesaFormBinding;
 import 'package:tsakanebov/presentation/bindings/relatorio_custos_binding.dart'
     show RelatorioCustosBinding;
+import 'package:tsakanebov/presentation/bindings/coberturas_binding.dart'
+    show CoberturasBinding;
+import 'package:tsakanebov/presentation/bindings/cobertura_form_binding.dart'
+    show CoberturaFormBinding;
+import 'package:tsakanebov/presentation/bindings/diagnosticos_binding.dart'
+    show DiagnosticosBinding;
+import 'package:tsakanebov/presentation/bindings/diagnostico_form_binding.dart'
+    show DiagnosticoFormBinding;
+import 'package:tsakanebov/presentation/bindings/partos_binding.dart'
+    show PartosBinding;
+import 'package:tsakanebov/presentation/bindings/parto_form_binding.dart'
+    show PartoFormBinding;
+import 'package:tsakanebov/presentation/bindings/relatorio_reproducao_binding.dart'
+    show RelatorioReproducaoBinding;
 import 'package:tsakanebov/presentation/views/home_view.dart' show HomeView;
 import 'package:tsakanebov/presentation/views/teste_conexao_view.dart'
     show TesteConexaoView;
@@ -60,6 +74,20 @@ import 'package:tsakanebov/presentation/views/despesa_form_view.dart'
     show DespesaFormView;
 import 'package:tsakanebov/presentation/views/relatorio_custos_view.dart'
     show RelatorioCustosView;
+import 'package:tsakanebov/presentation/views/coberturas_view.dart'
+    show CoberturasView;
+import 'package:tsakanebov/presentation/views/cobertura_form_view.dart'
+    show CoberturaFormView;
+import 'package:tsakanebov/presentation/views/diagnosticos_view.dart'
+    show DiagnosticosView;
+import 'package:tsakanebov/presentation/views/diagnostico_form_view.dart'
+    show DiagnosticoFormView;
+import 'package:tsakanebov/presentation/views/partos_view.dart'
+    show PartosView;
+import 'package:tsakanebov/presentation/views/parto_form_view.dart'
+    show PartoFormView;
+import 'package:tsakanebov/presentation/views/relatorio_reproducao_view.dart'
+    show RelatorioReproducaoView;
 
 import 'app_routes.dart';
 
@@ -143,6 +171,41 @@ class AppPages {
       name: AppRoutes.RELATORIO_CUSTOS,
       page: () => RelatorioCustosView(),
       binding: RelatorioCustosBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.COBERTURAS,
+      page: () => CoberturasView(),
+      binding: CoberturasBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.COBERTURA_FORM,
+      page: () => CoberturaFormView(),
+      binding: CoberturaFormBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.DIAGNOSTICOS,
+      page: () => DiagnosticosView(),
+      binding: DiagnosticosBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.DIAGNOSTICO_FORM,
+      page: () => DiagnosticoFormView(),
+      binding: DiagnosticoFormBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.PARTOS,
+      page: () => PartosView(),
+      binding: PartosBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.PARTO_FORM,
+      page: () => PartoFormView(),
+      binding: PartoFormBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.RELATORIO_REPRODUCAO,
+      page: () => RelatorioReproducaoView(),
+      binding: RelatorioReproducaoBinding(),
     ),
   ];
 }
