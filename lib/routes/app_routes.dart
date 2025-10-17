@@ -26,5 +26,8 @@ class AppRoutes {
   static const String PARTO_FORM = '/parto-form';
   static const String RELATORIO_REPRODUCAO = '/relatorio-reproducao';
 
+  // Rotas de Dashboard
+  static const String DASHBOARD = '/dashboard';
+
   static const String TESTE_CONEXAO = '/teste';
 }

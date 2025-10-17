@@ -62,6 +62,23 @@ class HomeView extends GetView<HomeController> {
 
               SizedBox(height: 16),
 
+              // Botão Dashboard
+              SizedBox(
+                width: 250,
+                child: ElevatedButton.icon(
+                  onPressed: () => Get.toNamed('/dashboard'),
+                  icon: Icon(Icons.dashboard, size: 28),
+                  label: Text('Dashboard', style: TextStyle(fontSize: 18)),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 16),
+
               // Botão Pesagem
               SizedBox(
                 width: 250,

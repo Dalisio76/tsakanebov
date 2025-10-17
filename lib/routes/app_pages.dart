@@ -43,6 +43,8 @@ import 'package:tsakanebov/presentation/bindings/parto_form_binding.dart'
     show PartoFormBinding;
 import 'package:tsakanebov/presentation/bindings/relatorio_reproducao_binding.dart'
     show RelatorioReproducaoBinding;
+import 'package:tsakanebov/presentation/bindings/dashboard_binding.dart'
+    show DashboardBinding;
 import 'package:tsakanebov/presentation/views/home_view.dart' show HomeView;
 import 'package:tsakanebov/presentation/views/teste_conexao_view.dart'
     show TesteConexaoView;
@@ -88,6 +90,8 @@ import 'package:tsakanebov/presentation/views/parto_form_view.dart'
     show PartoFormView;
 import 'package:tsakanebov/presentation/views/relatorio_reproducao_view.dart'
     show RelatorioReproducaoView;
+import 'package:tsakanebov/presentation/views/dashboard_view.dart'
+    show DashboardView;
 
 import 'app_routes.dart';
 
@@ -206,6 +210,11 @@ class AppPages {
       name: AppRoutes.RELATORIO_REPRODUCAO,
       page: () => RelatorioReproducaoView(),
       binding: RelatorioReproducaoBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.DASHBOARD,
+      page: () => DashboardView(),
+      binding: DashboardBinding(),
     ),
   ];
 }
