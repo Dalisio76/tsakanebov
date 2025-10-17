@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../controllers/alertas_saude_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class AlertasSaudeView extends GetView<AlertasSaudeController> {
   const AlertasSaudeView({super.key});
@@ -18,6 +19,7 @@ class AlertasSaudeView extends GetView<AlertasSaudeController> {
           ),
         ],
       ),
+      drawer: AppDrawer(),
       body: Column(
         children: [
           // Filtros

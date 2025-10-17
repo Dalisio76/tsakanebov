@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../controllers/relatorio_saude_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class RelatorioSaudeView extends GetView<RelatorioSaudeController> {
   const RelatorioSaudeView({super.key});
@@ -22,6 +23,7 @@ class RelatorioSaudeView extends GetView<RelatorioSaudeController> {
           ),
         ],
       ),
+      drawer: AppDrawer(),
       body: Column(
         children: [
           // Estatísticas

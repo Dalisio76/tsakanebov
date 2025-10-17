@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/animais_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class AnimaisView extends GetView<AnimaisController> {
   const AnimaisView({super.key});
@@ -21,6 +22,7 @@ class AnimaisView extends GetView<AnimaisController> {
           ),
         ],
       ),
+      drawer: AppDrawer(),
       body: Column(
         children: [
           // Barra de busca

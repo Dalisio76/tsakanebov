@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/grupos_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class GruposView extends GetView<GruposController> {
   const GruposView({super.key});
@@ -17,6 +18,7 @@ class GruposView extends GetView<GruposController> {
           ),
         ],
       ),
+      drawer: AppDrawer(),
       body: Column(
         children: [
           // Barra de busca

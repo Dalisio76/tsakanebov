@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: AppConstants.appName,
       theme: ThemeData(primarySwatch: Colors.green, useMaterial3: true),
-      initialRoute: AppRoutes.HOME,
+      initialRoute: AppRoutes.DASHBOARD,
       getPages: AppPages.pages,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [

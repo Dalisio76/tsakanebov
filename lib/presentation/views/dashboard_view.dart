@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../controllers/dashboard_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class DashboardView extends GetView<DashboardController> {
   @override
@@ -18,6 +19,7 @@ class DashboardView extends GetView<DashboardController> {
           ),
         ],
       ),
+      drawer: AppDrawer(),
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());

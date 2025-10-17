@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/pesagem_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class PesagemView extends GetView<PesagemController> {
   const PesagemView({super.key});
@@ -11,6 +12,7 @@ class PesagemView extends GetView<PesagemController> {
       appBar: AppBar(
         title: const Text('Registrar Pesagem'),
       ),
+      drawer: AppDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

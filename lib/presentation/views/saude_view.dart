@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/saude_controller.dart';
+import '../widgets/app_drawer.dart';
 
 class SaudeView extends GetView<SaudeController> {
   const SaudeView({super.key});
@@ -11,6 +12,7 @@ class SaudeView extends GetView<SaudeController> {
       appBar: AppBar(
         title: const Text('Registrar Evento de Saúde'),
       ),
+      drawer: AppDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
