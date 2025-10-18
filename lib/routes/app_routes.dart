@@ -1,4 +1,10 @@
 class AppRoutes {
+  // Auth
+  static const String LOGIN = '/login';
+  static const String CADASTRO = '/cadastro';
+  static const String RECUPERAR_SENHA = '/recuperar-senha';
+  static const String PERFIL = '/perfil';
+
   static const String HOME = '/';
   static const String GRUPOS = '/grupos';
   static const String GRUPO_FORM = '/grupos/form';

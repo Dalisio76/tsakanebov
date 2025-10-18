@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/auth_controller.dart';
 
 class AppDrawer extends StatefulWidget {
   @override
@@ -29,30 +30,54 @@ class _AppDrawerState extends State<AppDrawer> {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '🐄',
-                    style: TextStyle(fontSize: 48),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Gestão de Gado',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    'Sistema Completo',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
+              child: GetBuilder<AuthController>(
+                builder: (authController) {
+                  final perfil = authController.perfilUsuario.value;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '🐄',
+                        style: TextStyle(fontSize: 48),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Gestão de Gado',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (perfil != null) ...[
+                        SizedBox(height: 4),
+                        Text(
+                          perfil.nomeCompleto,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                        Text(
+                          perfil.roleNome,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                      ] else ...[
+                        Text(
+                          'Sistema Completo',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
             ),
 
@@ -241,6 +266,16 @@ class _AppDrawerState extends State<AppDrawer> {
     }
 
     menus.add(Divider(height: 1));
+
+    // Perfil
+    if (_matchBusca('perfil') || _matchBusca('usuario') || _matchBusca('conta')) {
+      menus.add(_buildMenuItem(
+        icon: Icons.person,
+        titulo: 'Meu Perfil',
+        rota: '/perfil',
+        cor: Colors.blue,
+      ));
+    }
 
     // Notificações
     if (_matchBusca('notificacoes') || _matchBusca('email') || _matchBusca('alertas')) {

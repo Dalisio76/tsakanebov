@@ -6,6 +6,7 @@ import 'package:tsakanebov/routes/app_pages.dart';
 import 'package:tsakanebov/routes/app_routes.dart';
 import 'core/config/supabase_config.dart';
 import 'core/constants/app_constants.dart';
+import 'presentation/bindings/auth_binding.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: AppConstants.appName,
       theme: ThemeData(primarySwatch: Colors.green, useMaterial3: true),
-      initialRoute: AppRoutes.DASHBOARD,
+      initialBinding: AuthBinding(),
+      initialRoute: AppRoutes.LOGIN,
       getPages: AppPages.pages,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [

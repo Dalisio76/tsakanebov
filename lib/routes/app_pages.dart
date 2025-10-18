@@ -100,11 +100,43 @@ import 'package:tsakanebov/presentation/views/relatorios_view.dart'
     show RelatoriosView;
 import 'package:tsakanebov/presentation/views/configuracoes_notificacoes_view.dart'
     show ConfiguracoesNotificacoesView;
+import 'package:tsakanebov/presentation/views/login_view.dart'
+    show LoginView;
+import 'package:tsakanebov/presentation/views/cadastro_view.dart'
+    show CadastroView;
+import 'package:tsakanebov/presentation/views/recuperar_senha_view.dart'
+    show RecuperarSenhaView;
+import 'package:tsakanebov/presentation/views/perfil_view.dart'
+    show PerfilView;
+import 'package:tsakanebov/presentation/bindings/auth_binding.dart'
+    show AuthBinding;
 
 import 'app_routes.dart';
 
 class AppPages {
   static final pages = [
+    // Auth
+    GetPage(
+      name: AppRoutes.LOGIN,
+      page: () => LoginView(),
+      binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.CADASTRO,
+      page: () => CadastroView(),
+      binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.RECUPERAR_SENHA,
+      page: () => RecuperarSenhaView(),
+      binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.PERFIL,
+      page: () => PerfilView(),
+      binding: AuthBinding(),
+    ),
+
     GetPage(
       name: AppRoutes.HOME,
       page: () => HomeView(),
