@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../data/models/animal_model.dart';
 import '../controllers/animais_controller.dart';
 import '../widgets/app_drawer.dart';
 
@@ -224,6 +225,18 @@ class AnimaisView extends GetView<AnimaisController> {
                             ),
                           ),
                           const PopupMenuItem(
+                            value: 'abate',
+                            child: Row(
+                              children: [
+                                Icon(Icons.restaurant,
+                                    size: 20, color: Colors.brown),
+                                SizedBox(width: 8),
+                                Text('Marcar para Abate',
+                                    style: TextStyle(color: Colors.brown)),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
                             value: 'deletar',
                             child: Row(
                               children: [
@@ -249,6 +262,8 @@ class AnimaisView extends GetView<AnimaisController> {
                             controller.irParaDetalhes(animal);
                           } else if (value == 'editar') {
                             controller.irParaEditar(animal);
+                          } else if (value == 'abate') {
+                            _marcarParaAbate(animal);
                           } else if (value == 'deletar') {
                             controller.deletarAnimal(animal);
                           }
@@ -360,6 +375,21 @@ class AnimaisView extends GetView<AnimaisController> {
           ],
         ),
       ),
+    );
+  }
+
+  void _marcarParaAbate(AnimalModel animal) {
+    Get.defaultDialog(
+      title: 'Marcar para Abate',
+      middleText: 'Tem certeza que deseja marcar o animal ${animal.brinco} para abate?',
+      textConfirm: 'Sim, marcar',
+      textCancel: 'Cancelar',
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.brown,
+      onConfirm: () async {
+        Get.back(); // Fecha diálogo
+        await controller.marcarParaAbate(animal);
+      },
     );
   }
 }

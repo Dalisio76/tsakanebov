@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../core/utils/currency_helper.dart';
 import '../../data/models/dashboard_stats_model.dart';
 import '../../data/services/dashboard_service.dart';
 
@@ -64,15 +65,15 @@ class DashboardController extends GetxController {
 
   // Formatar valores
   String formatarMoeda(double valor) {
-    return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
+    return CurrencyHelper.formatMT(valor);
   }
 
   String formatarPeso(double peso) {
-    return '${peso.toStringAsFixed(1).replaceAll('.', ',')} kg';
+    return CurrencyHelper.formatPeso(peso);
   }
 
   String formatarGMD(double gmd) {
-    return '${gmd.toStringAsFixed(3).replaceAll('.', ',')} kg/dia';
+    return CurrencyHelper.formatGMD(gmd);
   }
 
   // Atualizar hectares

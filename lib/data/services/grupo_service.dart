@@ -12,8 +12,8 @@ class GrupoService {
                 .from('grupos')
                 .select()
                 .eq('ativo', true)
-                .order('nome')
-          : await _supabase.from('grupos').select().order('nome');
+                .order('criado_em', ascending: false)
+          : await _supabase.from('grupos').select().order('criado_em', ascending: false);
 
       return (response as List)
           .map((json) => GrupoModel.fromJson(json))
@@ -46,7 +46,7 @@ class GrupoService {
           .select()
           .ilike('nome', '%$nome%')
           .eq('ativo', true)
-          .order('nome');
+          .order('criado_em', ascending: false);
 
       return (response as List)
           .map((json) => GrupoModel.fromJson(json))

@@ -5,6 +5,8 @@ class AppRoutes {
   static const String ANIMAIS = '/animais';
   static const String ANIMAL_FORM = '/animais/form';
   static const String ANIMAL_DETALHES = '/animais/detalhes';
+  static const String ANIMAIS_MORTOS = '/animais-mortos';
+  static const String ANIMAIS_ABATE = '/animais-abate';
   static const String PESAGEM = '/pesagem';
   static const String HISTORICO_PESAGEM = '/historico-pesagem';
   static const String SAUDE = '/saude';
@@ -28,6 +30,7 @@ class AppRoutes {
 
   // Rotas de Dashboard
   static const String DASHBOARD = '/dashboard';
+  static const String RELATORIOS = '/relatorios';
 
   static const String TESTE_CONEXAO = '/teste';
 }

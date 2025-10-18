@@ -65,6 +65,61 @@ class AnimalFormView extends GetView<AnimalFormController> {
                 )),
             const SizedBox(height: 16),
 
+            // Status
+            Obx(() => DropdownButtonFormField<String>(
+                  value: controller.statusSelecionado.value,
+                  decoration: const InputDecoration(
+                    labelText: 'Status',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.info_outline),
+                  ),
+                  items: controller.statusOptions.map((String status) {
+                    IconData icon;
+                    String label;
+                    switch (status) {
+                      case 'ativo':
+                        icon = Icons.check_circle;
+                        label = 'Ativo';
+                        break;
+                      case 'vendido':
+                        icon = Icons.sell;
+                        label = 'Vendido';
+                        break;
+                      case 'morto':
+                        icon = Icons.heart_broken;
+                        label = 'Morto';
+                        break;
+                      case 'transferido':
+                        icon = Icons.compare_arrows;
+                        label = 'Transferido';
+                        break;
+                      case 'abate':
+                        icon = Icons.restaurant;
+                        label = 'Abate';
+                        break;
+                      default:
+                        icon = Icons.help;
+                        label = status;
+                    }
+                    return DropdownMenuItem<String>(
+                      value: status,
+                      child: Row(
+                        children: [
+                          Icon(icon, size: 20),
+                          const SizedBox(width: 8),
+                          Text(label),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      controller.statusSelecionado.value = newValue;
+                    }
+                  },
+                )),
+            const SizedBox(height: 16),
+
             // Data de Nascimento
             InkWell(
               onTap: () => controller.selecionarData(context),
@@ -206,16 +261,168 @@ class AnimalFormView extends GetView<AnimalFormController> {
                 )),
             const SizedBox(height: 24),
 
-            // URL da Imagem
-            TextField(
-              controller: controller.urlImagemController,
-              decoration: const InputDecoration(
-                labelText: 'URL da Imagem',
-                hintText: 'https://...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.image),
-              ),
-              keyboardType: TextInputType.url,
+            // Foto do Animal
+            const Text(
+              'Foto do Animal',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
+            // Preview da imagem
+            Obx(() {
+              if (controller.isUploadingImage.value) {
+                return Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade400),
+                  ),
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Enviando foto...'),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (controller.imagemSelecionada.value != null) {
+                return Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green, width: 2),
+                  ),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(
+                          controller.imagemSelecionada.value!,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: controller.removerImagem,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (controller.urlImagemController.text.isNotEmpty) {
+                return Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue, width: 2),
+                  ),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          controller.urlImagemController.text,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const Center(child: CircularProgressIndicator());
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(Icons.error, size: 48, color: Colors.red),
+                            );
+                          },
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: controller.removerImagem,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade400),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.image_outlined, size: 48, color: Colors.grey),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Nenhuma foto selecionada',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+
+            const SizedBox(height: 12),
+
+            // Botões de upload
+            Row(
+              children: [
+                Expanded(
+                  child: Obx(() => ElevatedButton.icon(
+                    onPressed: controller.isUploadingImage.value
+                        ? null
+                        : controller.selecionarEUploadFoto,
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Galeria'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  )),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Obx(() => ElevatedButton.icon(
+                    onPressed: controller.isUploadingImage.value
+                        ? null
+                        : controller.tirarFoto,
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Câmera'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.green,
+                    ),
+                  )),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 

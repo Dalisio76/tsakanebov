@@ -130,4 +130,29 @@ class AnimaisController extends GetxController {
   void irParaDetalhes(AnimalModel animal) {
     Get.toNamed('/animais/detalhes', arguments: animal);
   }
+
+  Future<void> marcarParaAbate(AnimalModel animal) async {
+    try {
+      await _animalService.atualizar(
+        animal.id!,
+        animal.copyWith(status: 'abate'),
+      );
+      Get.snackbar(
+        '✅ Sucesso',
+        'Animal marcado para abate',
+        backgroundColor: Colors.brown,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      carregarAnimais();
+    } catch (e) {
+      Get.snackbar(
+        '❌ Erro',
+        'Erro ao marcar animal: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
 }

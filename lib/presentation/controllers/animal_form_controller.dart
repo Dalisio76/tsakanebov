@@ -1,10 +1,16 @@
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../core/services/cloudinary_service.dart';
 import '../../data/models/animal_model.dart';
 import '../../data/models/grupo_model.dart';
 import '../../data/services/animal_service.dart';
 import '../../data/services/grupo_service.dart';
+// Imports condicionais para web
+import 'dart:html' as html if (dart.library.io) 'dart:io';
 
 class AnimalFormController extends GetxController {
   final AnimalService _animalService = AnimalService();
@@ -23,6 +29,8 @@ class AnimalFormController extends GetxController {
   var isLoading = false.obs;
   var isEditMode = false.obs;
   var criarOutro = false.obs; // NOVO: flag para criar outro
+  var isUploadingImage = false.obs;
+  var imagemSelecionada = Rx<Uint8List?>(null);
   AnimalModel? animalOriginal;
 
   // Dropdowns
@@ -32,11 +40,13 @@ class AnimalFormController extends GetxController {
 
   var grupoSelecionado = Rxn<String>();
   var sexoSelecionado = 'M'.obs;
+  var statusSelecionado = 'ativo'.obs;
   var paiSelecionado = Rxn<String>();
   var maeSelecionada = Rxn<String>();
   var dataNascimento = Rxn<DateTime>();
 
   final sexos = ['M', 'F'];
+  final statusOptions = ['ativo', 'vendido', 'morto', 'transferido', 'abate'];
   final racas = [
     'Nelore',
     'Angus',
@@ -93,6 +103,7 @@ class AnimalFormController extends GetxController {
 
     grupoSelecionado.value = animal.grupoId;
     sexoSelecionado.value = animal.sexo;
+    statusSelecionado.value = animal.status ?? 'ativo';
     paiSelecionado.value = animal.paiId;
     maeSelecionada.value = animal.maeId;
     dataNascimento.value = animal.dataNascimento;
@@ -109,9 +120,11 @@ class AnimalFormController extends GetxController {
 
     grupoSelecionado.value = null;
     sexoSelecionado.value = 'M';
+    statusSelecionado.value = 'ativo';
     paiSelecionado.value = null;
     maeSelecionada.value = null;
     dataNascimento.value = DateTime.now();
+    imagemSelecionada.value = null;
   }
 
   Future<void> salvar() async {
@@ -148,7 +161,7 @@ class AnimalFormController extends GetxController {
         observacoes: observacoesController.text.trim().isEmpty
             ? null
             : observacoesController.text.trim(),
-        status: 'ativo',
+        status: statusSelecionado.value,
       );
 
       if (isEditMode.value) {
@@ -253,6 +266,156 @@ class AnimalFormController extends GetxController {
   String formatarData(DateTime? data) {
     if (data == null) return 'Selecione a data';
     return DateFormat('dd/MM/yyyy').format(data);
+  }
+
+  // Método para selecionar e fazer upload da foto
+  Future<void> selecionarEUploadFoto() async {
+    try {
+      if (kIsWeb) {
+        // Usar HTML file input para web
+        await _selecionarImagemWeb();
+      } else {
+        // Usar image_picker para mobile
+        final picker = ImagePicker();
+        final image = await picker.pickImage(
+          source: ImageSource.gallery,
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 85,
+        );
+
+        if (image == null) {
+          print('❌ Nenhuma imagem selecionada');
+          return;
+        }
+
+        print('📸 Imagem selecionada: ${image.name}');
+        final bytes = await image.readAsBytes();
+        await _fazerUploadImagem(bytes);
+      }
+    } catch (e) {
+      print('❌ Erro ao selecionar foto: $e');
+      imagemSelecionada.value = null;
+
+      Get.snackbar(
+        '❌ Erro',
+        'Erro ao selecionar foto: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  // Método específico para web usando HTML file input
+  Future<void> _selecionarImagemWeb() async {
+    final uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = 'image/*';
+    uploadInput.click();
+
+    await uploadInput.onChange.first;
+
+    final files = uploadInput.files;
+    if (files == null || files.isEmpty) {
+      print('❌ Nenhuma imagem selecionada');
+      return;
+    }
+
+    final file = files[0];
+    final reader = html.FileReader();
+    reader.readAsArrayBuffer(file);
+
+    await reader.onLoad.first;
+
+    final bytes = reader.result as Uint8List;
+    await _fazerUploadImagem(bytes);
+  }
+
+  // Método compartilhado para fazer upload
+  Future<void> _fazerUploadImagem(Uint8List bytes) async {
+    try {
+      imagemSelecionada.value = bytes;
+      isUploadingImage.value = true;
+
+      Get.snackbar(
+        '⏳ Enviando',
+        'Fazendo upload da imagem...',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+
+      // Upload para Cloudinary
+      final filename = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final url = await CloudinaryService.uploadImagem(
+        bytes: bytes,
+        filename: filename,
+      );
+
+      if (url != null) {
+        urlImagemController.text = url;
+
+        Get.snackbar(
+          '✅ Sucesso',
+          'Foto enviada com sucesso!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } else {
+        imagemSelecionada.value = null;
+
+        Get.snackbar(
+          '❌ Erro',
+          'Erro ao enviar foto. Tente novamente.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } finally {
+      isUploadingImage.value = false;
+    }
+  }
+
+  // Método para tirar foto com câmera
+  Future<void> tirarFoto() async {
+    try {
+      if (kIsWeb) {
+        // Na web, usar file input (não há acesso direto à câmera)
+        await _selecionarImagemWeb();
+      } else {
+        // No mobile, usar câmera
+        final picker = ImagePicker();
+        final image = await picker.pickImage(
+          source: ImageSource.camera,
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 85,
+        );
+
+        if (image == null) return;
+
+        final bytes = await image.readAsBytes();
+        await _fazerUploadImagem(bytes);
+      }
+    } catch (e) {
+      print('❌ Erro ao tirar foto: $e');
+      imagemSelecionada.value = null;
+
+      Get.snackbar(
+        '❌ Erro',
+        'Erro: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  // Remover imagem selecionada
+  void removerImagem() {
+    imagemSelecionada.value = null;
+    urlImagemController.clear();
   }
 
   @override

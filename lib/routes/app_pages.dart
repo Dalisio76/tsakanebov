@@ -58,6 +58,10 @@ import 'package:tsakanebov/presentation/views/animal_form_view.dart'
     show AnimalFormView;
 import 'package:tsakanebov/presentation/views/animal_detalhes_view.dart'
     show AnimalDetalhesView;
+import 'package:tsakanebov/presentation/views/animais_mortos_view.dart'
+    show AnimaisMortosView;
+import 'package:tsakanebov/presentation/views/animais_abate_view.dart'
+    show AnimaisAbateView;
 import 'package:tsakanebov/presentation/views/pesagem_view.dart'
     show PesagemView;
 import 'package:tsakanebov/presentation/views/historico_pesagem_view.dart'
@@ -92,6 +96,8 @@ import 'package:tsakanebov/presentation/views/relatorio_reproducao_view.dart'
     show RelatorioReproducaoView;
 import 'package:tsakanebov/presentation/views/dashboard_view.dart'
     show DashboardView;
+import 'package:tsakanebov/presentation/views/relatorios_view.dart'
+    show RelatoriosView;
 
 import 'app_routes.dart';
 
@@ -130,6 +136,14 @@ class AppPages {
     GetPage(
       name: AppRoutes.ANIMAL_DETALHES,
       page: () => const AnimalDetalhesView(),
+    ),
+    GetPage(
+      name: AppRoutes.ANIMAIS_MORTOS,
+      page: () => const AnimaisMortosView(),
+    ),
+    GetPage(
+      name: AppRoutes.ANIMAIS_ABATE,
+      page: () => const AnimaisAbateView(),
     ),
     GetPage(
       name: AppRoutes.PESAGEM,
@@ -215,6 +229,10 @@ class AppPages {
       name: AppRoutes.DASHBOARD,
       page: () => DashboardView(),
       binding: DashboardBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.RELATORIOS,
+      page: () => const RelatoriosView(),
     ),
   ];
 }

@@ -30,7 +30,7 @@ class AnimalService {
         query = query.eq('sexo', sexo);
       }
 
-      final response = await query.order('brinco');
+      final response = await query.order('criado_em', ascending: false);
 
       return (response as List)
           .map((json) => AnimalModel.fromJson(json))

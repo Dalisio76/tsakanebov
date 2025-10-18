@@ -9,6 +9,7 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   // Controla qual menu está expandido
   String? menuExpandido;
+  String buscaTexto = '';
 
   @override
   Widget build(BuildContext context) {
@@ -55,119 +56,44 @@ class _AppDrawerState extends State<AppDrawer> {
               ),
             ),
 
+            // Campo de Busca
+            Padding(
+              padding: EdgeInsets.all(12.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Buscar no menu...',
+                  prefixIcon: Icon(Icons.search, size: 20),
+                  suffixIcon: buscaTexto.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            setState(() {
+                              buscaTexto = '';
+                            });
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(25),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                onChanged: (valor) {
+                  setState(() {
+                    buscaTexto = valor.toLowerCase();
+                  });
+                },
+              ),
+            ),
+
             // Menu Items
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
-                children: [
-                  // Dashboard
-                  _buildMenuItem(
-                    icon: Icons.dashboard,
-                    titulo: 'Dashboard',
-                    rota: '/dashboard',
-                    cor: Colors.teal,
-                  ),
-
-                  Divider(height: 1),
-
-                  // Animais (com submenu)
-                  _buildMenuExpansivel(
-                    icon: Icons.pets,
-                    titulo: 'Animais',
-                    cor: Colors.blue,
-                    identificador: 'animais',
-                    subitens: [
-                      _SubMenuItem(
-                        titulo: 'Lista de Animais',
-                        rota: '/animais',
-                        icon: Icons.list,
-                      ),
-                      _SubMenuItem(
-                        titulo: 'Cadastrar Animal',
-                        rota: '/animais/form',
-                        icon: Icons.add_circle_outline,
-                      ),
-                    ],
-                  ),
-
-                  // Grupos (com submenu)
-                  _buildMenuExpansivel(
-                    icon: Icons.folder,
-                    titulo: 'Grupos',
-                    cor: Colors.green,
-                    identificador: 'grupos',
-                    subitens: [
-                      _SubMenuItem(
-                        titulo: 'Lista de Grupos',
-                        rota: '/grupos',
-                        icon: Icons.list,
-                      ),
-                      _SubMenuItem(
-                        titulo: 'Criar Grupo',
-                        rota: '/grupos/form',
-                        icon: Icons.add_circle_outline,
-                      ),
-                    ],
-                  ),
-
-                  // Pesagem (com submenu)
-                  _buildMenuExpansivel(
-                    icon: Icons.monitor_weight,
-                    titulo: 'Pesagem',
-                    cor: Colors.orange,
-                    identificador: 'pesagem',
-                    subitens: [
-                      _SubMenuItem(
-                        titulo: 'Registrar Pesagem',
-                        rota: '/pesagem',
-                        icon: Icons.add_circle_outline,
-                      ),
-                    ],
-                  ),
-
-                  // Saúde (com submenu)
-                  _buildMenuExpansivel(
-                    icon: Icons.medical_services,
-                    titulo: 'Saúde',
-                    cor: Colors.red,
-                    identificador: 'saude',
-                    subitens: [
-                      _SubMenuItem(
-                        titulo: 'Registrar Evento',
-                        rota: '/saude',
-                        icon: Icons.add_circle_outline,
-                      ),
-                      _SubMenuItem(
-                        titulo: 'Alertas',
-                        rota: '/alertas-saude',
-                        icon: Icons.notifications_active,
-                      ),
-                      _SubMenuItem(
-                        titulo: 'Relatório de Saúde',
-                        rota: '/relatorio-saude',
-                        icon: Icons.assignment,
-                      ),
-                    ],
-                  ),
-
-                  Divider(height: 1),
-
-                  // Configurações
-                  _buildMenuItem(
-                    icon: Icons.settings,
-                    titulo: 'Configurações',
-                    rota: '/dashboard', // Placeholder
-                    cor: Colors.grey,
-                  ),
-
-                  // Sobre
-                  _buildMenuItem(
-                    icon: Icons.info_outline,
-                    titulo: 'Sobre',
-                    rota: '/dashboard', // Placeholder
-                    cor: Colors.grey,
-                  ),
-                ],
+                children: _buildMenusFiltrados(),
               ),
             ),
 
@@ -187,6 +113,162 @@ class _AppDrawerState extends State<AppDrawer> {
         ),
       ),
     );
+  }
+
+  // Construir menus filtrados pela busca
+  List<Widget> _buildMenusFiltrados() {
+    List<Widget> menus = [];
+
+    // Dashboard
+    if (_matchBusca('dashboard')) {
+      menus.add(_buildMenuItem(
+        icon: Icons.dashboard,
+        titulo: 'Dashboard',
+        rota: '/dashboard',
+        cor: Colors.teal,
+      ));
+      menus.add(Divider(height: 1));
+    }
+
+    // Animais
+    if (_matchBusca('animais') || _matchBusca('lista') || _matchBusca('cadastrar') || _matchBusca('mortos') || _matchBusca('abate')) {
+      menus.add(_buildMenuExpansivel(
+        icon: Icons.pets,
+        titulo: 'Animais',
+        cor: Colors.blue,
+        identificador: 'animais',
+        subitens: [
+          _SubMenuItem(
+            titulo: 'Lista de Animais',
+            rota: '/animais',
+            icon: Icons.list,
+          ),
+          _SubMenuItem(
+            titulo: 'Cadastrar Animal',
+            rota: '/animais/form',
+            icon: Icons.add_circle_outline,
+          ),
+          _SubMenuItem(
+            titulo: 'Animais para Abate',
+            rota: '/animais-abate',
+            icon: Icons.restaurant,
+          ),
+          _SubMenuItem(
+            titulo: 'Animais Mortos',
+            rota: '/animais-mortos',
+            icon: Icons.heart_broken,
+          ),
+        ],
+      ));
+    }
+
+    // Grupos
+    if (_matchBusca('grupos') || _matchBusca('criar')) {
+      menus.add(_buildMenuExpansivel(
+        icon: Icons.folder,
+        titulo: 'Grupos',
+        cor: Colors.green,
+        identificador: 'grupos',
+        subitens: [
+          _SubMenuItem(
+            titulo: 'Lista de Grupos',
+            rota: '/grupos',
+            icon: Icons.list,
+          ),
+          _SubMenuItem(
+            titulo: 'Criar Grupo',
+            rota: '/grupos/form',
+            icon: Icons.add_circle_outline,
+          ),
+        ],
+      ));
+    }
+
+    // Pesagem
+    if (_matchBusca('pesagem') || _matchBusca('registrar')) {
+      menus.add(_buildMenuExpansivel(
+        icon: Icons.monitor_weight,
+        titulo: 'Pesagem',
+        cor: Colors.orange,
+        identificador: 'pesagem',
+        subitens: [
+          _SubMenuItem(
+            titulo: 'Registrar Pesagem',
+            rota: '/pesagem',
+            icon: Icons.add_circle_outline,
+          ),
+        ],
+      ));
+    }
+
+    // Saúde
+    if (_matchBusca('saude') || _matchBusca('alertas') || _matchBusca('relatorio')) {
+      menus.add(_buildMenuExpansivel(
+        icon: Icons.medical_services,
+        titulo: 'Saúde',
+        cor: Colors.red,
+        identificador: 'saude',
+        subitens: [
+          _SubMenuItem(
+            titulo: 'Registrar Evento',
+            rota: '/saude',
+            icon: Icons.add_circle_outline,
+          ),
+          _SubMenuItem(
+            titulo: 'Alertas',
+            rota: '/alertas-saude',
+            icon: Icons.notifications_active,
+          ),
+          _SubMenuItem(
+            titulo: 'Relatório de Saúde',
+            rota: '/relatorio-saude',
+            icon: Icons.assignment,
+          ),
+        ],
+      ));
+    }
+
+    menus.add(Divider(height: 1));
+
+    // Relatórios
+    if (_matchBusca('relatorios') || _matchBusca('relatorio')) {
+      menus.add(_buildMenuItem(
+        icon: Icons.assessment,
+        titulo: 'Relatórios',
+        rota: '/relatorios',
+        cor: Colors.indigo,
+      ));
+    }
+
+    menus.add(Divider(height: 1));
+
+    // Configurações
+    if (_matchBusca('configuracoes') || _matchBusca('config')) {
+      menus.add(_buildMenuItem(
+        icon: Icons.settings,
+        titulo: 'Configurações',
+        rota: '/dashboard',
+        cor: Colors.grey,
+      ));
+    }
+
+    // Sobre
+    if (_matchBusca('sobre')) {
+      menus.add(_buildMenuItem(
+        icon: Icons.info_outline,
+        titulo: 'Sobre',
+        rota: '/dashboard',
+        cor: Colors.grey,
+      ));
+    }
+
+    return menus;
+  }
+
+  // Verificar se o texto corresponde à busca
+  bool _matchBusca(String texto) {
+    if (buscaTexto.isEmpty) return true;
+    return texto.toLowerCase().contains(buscaTexto);
   }
 
   // Item de menu simples (sem submenu)
