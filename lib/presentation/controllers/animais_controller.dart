@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/services/notification_service.dart';
 import '../../data/models/animal_model.dart';
 import '../../data/models/grupo_model.dart';
 import '../../data/services/animal_service.dart';
@@ -8,6 +9,7 @@ import '../../data/services/grupo_service.dart';
 class AnimaisController extends GetxController {
   final AnimalService _animalService = AnimalService();
   final GrupoService _grupoService = GrupoService();
+  final NotificationService _notificationService = NotificationService();
 
   var animais = <AnimalModel>[].obs;
   var grupos = <GrupoModel>[].obs;
@@ -103,6 +105,13 @@ class AnimaisController extends GetxController {
 
       if (confirmado == true) {
         await _animalService.deletar(animal.id!);
+
+        // Notificar animal morto
+        await _notificationService.notificarAnimalMorto(
+          animal.brinco,
+          animal.nome,
+        );
+
         Get.snackbar(
           'Sucesso',
           'Animal marcado como morto',

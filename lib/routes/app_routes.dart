@@ -32,5 +32,8 @@ class AppRoutes {
   static const String DASHBOARD = '/dashboard';
   static const String RELATORIOS = '/relatorios';
 
+  // Rotas de Configurações
+  static const String CONFIGURACOES_NOTIFICACOES = '/configuracoes-notificacoes';
+
   static const String TESTE_CONEXAO = '/teste';
 }

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../core/services/cloudinary_service.dart';
+import '../../core/services/notification_service.dart';
 import '../../data/models/animal_model.dart';
 import '../../data/models/grupo_model.dart';
 import '../../data/services/animal_service.dart';
@@ -15,6 +16,7 @@ import 'dart:html' as html if (dart.library.io) 'dart:io';
 class AnimalFormController extends GetxController {
   final AnimalService _animalService = AnimalService();
   final GrupoService _grupoService = GrupoService();
+  final NotificationService _notificationService = NotificationService();
 
   // Controllers
   final brincoController = TextEditingController();
@@ -177,6 +179,13 @@ class AnimalFormController extends GetxController {
         Get.back(result: true);
       } else {
         await _animalService.criar(animal);
+
+        // Enviar notificação de animal cadastrado
+        await _notificationService.notificarAnimalCadastrado(
+          animal.brinco,
+          animal.nome,
+        );
+
         Get.snackbar(
           '✅ Sucesso',
           'Animal "${animal.brinco}" criado com sucesso!',

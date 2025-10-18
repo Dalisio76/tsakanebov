@@ -242,6 +242,16 @@ class _AppDrawerState extends State<AppDrawer> {
 
     menus.add(Divider(height: 1));
 
+    // Notificações
+    if (_matchBusca('notificacoes') || _matchBusca('email') || _matchBusca('alertas')) {
+      menus.add(_buildMenuItem(
+        icon: Icons.notifications_active,
+        titulo: 'Notificações',
+        rota: '/configuracoes-notificacoes',
+        cor: Colors.deepPurple,
+      ));
+    }
+
     // Configurações
     if (_matchBusca('configuracoes') || _matchBusca('config')) {
       menus.add(_buildMenuItem(

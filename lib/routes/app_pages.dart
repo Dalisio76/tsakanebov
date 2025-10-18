@@ -98,6 +98,8 @@ import 'package:tsakanebov/presentation/views/dashboard_view.dart'
     show DashboardView;
 import 'package:tsakanebov/presentation/views/relatorios_view.dart'
     show RelatoriosView;
+import 'package:tsakanebov/presentation/views/configuracoes_notificacoes_view.dart'
+    show ConfiguracoesNotificacoesView;
 
 import 'app_routes.dart';
 
@@ -233,6 +235,10 @@ class AppPages {
     GetPage(
       name: AppRoutes.RELATORIOS,
       page: () => const RelatoriosView(),
+    ),
+    GetPage(
+      name: AppRoutes.CONFIGURACOES_NOTIFICACOES,
+      page: () => const ConfiguracoesNotificacoesView(),
     ),
   ];
 }

@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../data/models/animal_model.dart';
 import 'package:intl/intl.dart';
+import '../../data/models/animal_model.dart';
 
 class AnimalDetalhesView extends StatelessWidget {
   const AnimalDetalhesView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final AnimalModel animal = Get.arguments;
+    final AnimalModel animal = Get.arguments as AnimalModel;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalhes do Animal'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Get.back();
-              Get.toNamed('/animais/form', arguments: animal);
-            },
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
