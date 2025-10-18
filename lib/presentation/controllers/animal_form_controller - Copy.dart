@@ -10,6 +10,8 @@ import '../../data/models/animal_model.dart';
 import '../../data/models/grupo_model.dart';
 import '../../data/services/animal_service.dart';
 import '../../data/services/grupo_service.dart';
+// Imports condicionais para web
+import 'dart:html' as html if (dart.library.io) 'dart:io';
 
 class AnimalFormController extends GetxController {
   final AnimalService _animalService = AnimalService();
@@ -74,39 +76,15 @@ class AnimalFormController extends GetxController {
   Future<void> carregarDados() async {
     try {
       print('Carregando grupos...');
-      final gruposCarregados = await _grupoService.listarGrupos();
-      // Remover duplicados baseado no ID
-      final gruposUnicos = <String, GrupoModel>{};
-      for (var grupo in gruposCarregados) {
-        if (grupo.id != null && grupo.id!.isNotEmpty) {
-          gruposUnicos[grupo.id!] = grupo;
-        }
-      }
-      grupos.value = gruposUnicos.values.toList();
+      grupos.value = await _grupoService.listarGrupos();
       print('Grupos carregados: ${grupos.length}');
 
       print('Carregando pais...');
-      final paisCarregados = await _animalService.listarPossiveisPais();
-      // Remover duplicados baseado no ID
-      final paisUnicos = <String, AnimalModel>{};
-      for (var animal in paisCarregados) {
-        if (animal.id != null) {
-          paisUnicos[animal.id!] = animal;
-        }
-      }
-      possiveisPais.value = paisUnicos.values.toList();
+      possiveisPais.value = await _animalService.listarPossiveisPais();
       print('Pais carregados: ${possiveisPais.length}');
 
       print('Carregando mães...');
-      final maesCarregadas = await _animalService.listarPossiveisMaes();
-      // Remover duplicados baseado no ID
-      final maesUnicas = <String, AnimalModel>{};
-      for (var animal in maesCarregadas) {
-        if (animal.id != null) {
-          maesUnicas[animal.id!] = animal;
-        }
-      }
-      possiveisMaes.value = maesUnicas.values.toList();
+      possiveisMaes.value = await _animalService.listarPossiveisMaes();
       print('Mães carregadas: ${possiveisMaes.length}');
     } catch (e) {
       print('ERRO DETALHADO: $e');
@@ -313,23 +291,28 @@ class AnimalFormController extends GetxController {
   // Método para selecionar e fazer upload da foto
   Future<void> selecionarEUploadFoto() async {
     try {
-      // Usar image_picker para todas as plataformas (funciona em web também)
-      final picker = ImagePicker();
-      final image = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
-      );
+      if (kIsWeb) {
+        // Usar HTML file input para web
+        await _selecionarImagemWeb();
+      } else {
+        // Usar image_picker para mobile
+        final picker = ImagePicker();
+        final image = await picker.pickImage(
+          source: ImageSource.gallery,
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 85,
+        );
 
-      if (image == null) {
-        print('❌ Nenhuma imagem selecionada');
-        return;
+        if (image == null) {
+          print('❌ Nenhuma imagem selecionada');
+          return;
+        }
+
+        print('📸 Imagem selecionada: ${image.name}');
+        final bytes = await image.readAsBytes();
+        await _fazerUploadImagem(bytes);
       }
-
-      print('📸 Imagem selecionada: ${image.name}');
-      final bytes = await image.readAsBytes();
-      await _fazerUploadImagem(bytes);
     } catch (e) {
       print('❌ Erro ao selecionar foto: $e');
       imagemSelecionada.value = null;
@@ -342,6 +325,30 @@ class AnimalFormController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     }
+  }
+
+  // Método específico para web usando HTML file input
+  Future<void> _selecionarImagemWeb() async {
+    final uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = 'image/*';
+    uploadInput.click();
+
+    await uploadInput.onChange.first;
+
+    final files = uploadInput.files;
+    if (files == null || files.isEmpty) {
+      print('❌ Nenhuma imagem selecionada');
+      return;
+    }
+
+    final file = files[0];
+    final reader = html.FileReader();
+    reader.readAsArrayBuffer(file);
+
+    await reader.onLoad.first;
+
+    final bytes = reader.result as Uint8List;
+    await _fazerUploadImagem(bytes);
   }
 
   // Método compartilhado para fazer upload
@@ -393,19 +400,24 @@ class AnimalFormController extends GetxController {
   // Método para tirar foto com câmera
   Future<void> tirarFoto() async {
     try {
-      // Usar câmera (funciona em todas as plataformas)
-      final picker = ImagePicker();
-      final image = await picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
-      );
+      if (kIsWeb) {
+        // Na web, usar file input (não há acesso direto à câmera)
+        await _selecionarImagemWeb();
+      } else {
+        // No mobile, usar câmera
+        final picker = ImagePicker();
+        final image = await picker.pickImage(
+          source: ImageSource.camera,
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 85,
+        );
 
-      if (image == null) return;
+        if (image == null) return;
 
-      final bytes = await image.readAsBytes();
-      await _fazerUploadImagem(bytes);
+        final bytes = await image.readAsBytes();
+        await _fazerUploadImagem(bytes);
+      }
     } catch (e) {
       print('❌ Erro ao tirar foto: $e');
       imagemSelecionada.value = null;
