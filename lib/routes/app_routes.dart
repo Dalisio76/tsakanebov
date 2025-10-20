@@ -14,6 +14,7 @@ class AppRoutes {
   static const String ANIMAIS_MORTOS = '/animais-mortos';
   static const String ANIMAIS_ABATE = '/animais-abate';
   static const String PESAGEM = '/pesagem';
+  static const String RELATORIO_PESAGENS = '/relatorio-pesagens';
   static const String HISTORICO_PESAGEM = '/historico-pesagem';
   static const String SAUDE = '/saude';
   static const String HISTORICO_SAUDE = '/historico-saude';
@@ -40,6 +41,10 @@ class AppRoutes {
 
   // Rotas de Configurações
   static const String CONFIGURACOES_NOTIFICACOES = '/configuracoes-notificacoes';
+
+  // Rotas de Usuários
+  static const String USUARIOS = '/usuarios';
+  static const String USUARIO_EDIT = '/usuario-edit';
 
   static const String TESTE_CONEXAO = '/teste';
 }

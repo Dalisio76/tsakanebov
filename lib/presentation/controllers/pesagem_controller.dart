@@ -18,9 +18,14 @@ class PesagemController extends GetxController {
   // Estado
   var isLoading = false.obs;
   var isBuscandoAnimal = false.obs;
+  var isLoadingRelatorio = false.obs;
   var animalSelecionado = Rxn<AnimalModel>();
   var dataPesagem = Rxn<DateTime>();
   var tipoPesagem = 'rotina'.obs;
+
+  // Relatório
+  var pesagensDoMes = <PesagemModel>[].obs;
+  var mesSelecionado = DateTime.now().obs;
 
   final tiposPesagem = ['nascimento', 'rotina', 'venda'];
 
@@ -28,6 +33,7 @@ class PesagemController extends GetxController {
   void onInit() {
     super.onInit();
     dataPesagem.value = DateTime.now();
+    carregarPesagensDoMes();
   }
 
   // Buscar animal por brinco
@@ -194,6 +200,65 @@ class PesagemController extends GetxController {
   String formatarData(DateTime? data) {
     if (data == null) return 'Selecione';
     return DateFormat('dd/MM/yyyy').format(data);
+  }
+
+  // Carregar pesagens do mês
+  Future<void> carregarPesagensDoMes() async {
+    try {
+      isLoadingRelatorio.value = true;
+
+      final inicioMes = DateTime(mesSelecionado.value.year, mesSelecionado.value.month, 1);
+      final fimMes = DateTime(mesSelecionado.value.year, mesSelecionado.value.month + 1, 0, 23, 59, 59);
+
+      final todasPesagens = await _pesagemService.listarRecentes(dias: 365);
+
+      // Filtrar pesagens do mês selecionado
+      pesagensDoMes.value = todasPesagens.where((pesagem) {
+        return pesagem.dataPesagem.isAfter(inicioMes.subtract(const Duration(days: 1))) &&
+               pesagem.dataPesagem.isBefore(fimMes.add(const Duration(days: 1)));
+      }).toList();
+
+      pesagensDoMes.sort((a, b) => b.dataPesagem.compareTo(a.dataPesagem));
+    } catch (e) {
+      Get.snackbar('Erro', 'Erro ao carregar pesagens: $e',
+          snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoadingRelatorio.value = false;
+    }
+  }
+
+  // Navegar entre meses
+  void mesAnterior() {
+    mesSelecionado.value = DateTime(
+      mesSelecionado.value.year,
+      mesSelecionado.value.month - 1,
+    );
+    carregarPesagensDoMes();
+  }
+
+  void proximoMes() {
+    final proximo = DateTime(
+      mesSelecionado.value.year,
+      mesSelecionado.value.month + 1,
+    );
+
+    // Não permitir meses futuros
+    if (proximo.isAfter(DateTime.now())) {
+      Get.snackbar('Atenção', 'Não há dados para meses futuros',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    mesSelecionado.value = proximo;
+    carregarPesagensDoMes();
+  }
+
+  String formatarMes(DateTime data) {
+    final meses = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return '${meses[data.month - 1]} ${data.year}';
   }
 
   @override

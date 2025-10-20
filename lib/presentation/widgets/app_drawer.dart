@@ -210,7 +210,7 @@ class _AppDrawerState extends State<AppDrawer> {
     }
 
     // Pesagem
-    if (_matchBusca('pesagem') || _matchBusca('registrar')) {
+    if (_matchBusca('pesagem') || _matchBusca('registrar') || _matchBusca('relatorio')) {
       menus.add(_buildMenuExpansivel(
         icon: Icons.monitor_weight,
         titulo: 'Pesagem',
@@ -221,6 +221,11 @@ class _AppDrawerState extends State<AppDrawer> {
             titulo: 'Registrar Pesagem',
             rota: '/pesagem',
             icon: Icons.add_circle_outline,
+          ),
+          _SubMenuItem(
+            titulo: 'Relatório de Pesagens',
+            rota: '/relatorio-pesagens',
+            icon: Icons.assessment,
           ),
         ],
       ));
@@ -274,6 +279,17 @@ class _AppDrawerState extends State<AppDrawer> {
         titulo: 'Meu Perfil',
         rota: '/perfil',
         cor: Colors.blue,
+      ));
+    }
+
+    // Gerenciar Usuários (apenas para admin)
+    final authController = Get.find<AuthController>();
+    if (authController.isAdmin && (_matchBusca('usuarios') || _matchBusca('gerenciar'))) {
+      menus.add(_buildMenuItem(
+        icon: Icons.people,
+        titulo: 'Gerenciar Usuários',
+        rota: '/usuarios',
+        cor: Colors.purple,
       ));
     }
 

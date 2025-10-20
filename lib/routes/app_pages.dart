@@ -64,6 +64,8 @@ import 'package:tsakanebov/presentation/views/animais_abate_view.dart'
     show AnimaisAbateView;
 import 'package:tsakanebov/presentation/views/pesagem_view.dart'
     show PesagemView;
+import 'package:tsakanebov/presentation/views/relatorio_pesagens_view.dart'
+    show RelatorioPesagensView;
 import 'package:tsakanebov/presentation/views/historico_pesagem_view.dart'
     show HistoricoPesagemView;
 import 'package:tsakanebov/presentation/views/saude_view.dart'
@@ -108,8 +110,14 @@ import 'package:tsakanebov/presentation/views/recuperar_senha_view.dart'
     show RecuperarSenhaView;
 import 'package:tsakanebov/presentation/views/perfil_view.dart'
     show PerfilView;
+import 'package:tsakanebov/presentation/views/usuarios_view.dart'
+    show UsuariosView;
+import 'package:tsakanebov/presentation/views/usuario_edit_view.dart'
+    show UsuarioEditView;
 import 'package:tsakanebov/presentation/bindings/auth_binding.dart'
     show AuthBinding;
+import 'package:tsakanebov/presentation/bindings/usuarios_binding.dart'
+    show UsuariosBinding;
 
 import 'app_routes.dart';
 
@@ -182,6 +190,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.PESAGEM,
       page: () => const PesagemView(),
+      binding: PesagemBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.RELATORIO_PESAGENS,
+      page: () => const RelatorioPesagensView(),
       binding: PesagemBinding(),
     ),
     GetPage(
@@ -271,6 +284,16 @@ class AppPages {
     GetPage(
       name: AppRoutes.CONFIGURACOES_NOTIFICACOES,
       page: () => const ConfiguracoesNotificacoesView(),
+    ),
+    GetPage(
+      name: AppRoutes.USUARIOS,
+      page: () => const UsuariosView(),
+      binding: UsuariosBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.USUARIO_EDIT,
+      page: () => const UsuarioEditView(),
+      binding: UsuariosBinding(),
     ),
   ];
 }

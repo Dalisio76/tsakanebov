@@ -73,4 +73,30 @@ class UserProfileModel {
     }
     return nomeCompleto.isNotEmpty ? nomeCompleto[0].toUpperCase() : 'U';
   }
+
+  UserProfileModel copyWith({
+    String? id,
+    String? nomeCompleto,
+    String? email,
+    String? telefone,
+    String? avatarUrl,
+    String? role,
+    String? fazendaNome,
+    bool? ativo,
+    DateTime? criadoEm,
+    DateTime? atualizadoEm,
+  }) {
+    return UserProfileModel(
+      id: id ?? this.id,
+      nomeCompleto: nomeCompleto ?? this.nomeCompleto,
+      email: email ?? this.email,
+      telefone: telefone ?? this.telefone,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      role: role ?? this.role,
+      fazendaNome: fazendaNome ?? this.fazendaNome,
+      ativo: ativo ?? this.ativo,
+      criadoEm: criadoEm ?? this.criadoEm,
+      atualizadoEm: atualizadoEm ?? this.atualizadoEm,
+    );
+  }
 }
