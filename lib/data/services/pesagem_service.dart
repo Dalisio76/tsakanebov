@@ -1,12 +1,48 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:get/get.dart';
 import '../models/pesagem_model.dart';
+import '../../core/database/local_database.dart';
+import '../../core/services/connectivity_service.dart';
+import '../../core/services/sync_service.dart';
 
 class PesagemService {
   final _supabase = Supabase.instance.client;
+  final _localDB = LocalDatabase.instance;
 
-  // Criar nova pesagem
+  // Criar nova pesagem (com suporte offline)
   Future<PesagemModel> criar(PesagemModel pesagem) async {
     try {
+      // Verificar conectividade
+      final connectivityService = Get.find<ConnectivityService>();
+
+      if (!connectivityService.isOnline) {
+        // MODO OFFLINE - Salvar localmente
+        print('📴 OFFLINE: Salvando pesagem localmente');
+
+        final localId = DateTime.now().millisecondsSinceEpoch.toString();
+        await _localDB.inserirPesagemOffline({
+          'local_id': localId,
+          'animal_id': pesagem.animalId,
+          'animal_brinco': pesagem.animalBrinco,
+          'peso_kg': pesagem.pesoKg,
+          'data_pesagem': pesagem.dataPesagem.toIso8601String(),
+          'tipo_pesagem': pesagem.tipoPesagem ?? 'rotina',
+          'observacoes': pesagem.observacoes,
+          'criado_em': DateTime.now().toIso8601String(),
+          'sincronizado': 0,
+        });
+
+        // Atualizar contador de dados não sincronizados
+        if (Get.isRegistered<SyncService>()) {
+          Get.find<SyncService>().atualizarContadorNaoSincronizados();
+        }
+
+        // Retornar modelo com dados locais
+        return pesagem;
+      }
+
+      // MODO ONLINE - Salvar no Supabase
+      print('🌐 ONLINE: Salvando pesagem no Supabase');
       final response = await _supabase
           .from('historico_peso')
           .insert(pesagem.toJson())

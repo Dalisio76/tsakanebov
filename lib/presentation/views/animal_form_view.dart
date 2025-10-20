@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/animal_form_controller.dart';
+import '../widgets/sync_indicator.dart';
 
 class AnimalFormView extends GetView<AnimalFormController> {
   const AnimalFormView({super.key});
@@ -11,6 +12,12 @@ class AnimalFormView extends GetView<AnimalFormController> {
       appBar: AppBar(
         title: Obx(() => Text(
             controller.isEditMode.value ? 'Editar Animal' : 'Novo Animal')),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(child: SyncIndicator()),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

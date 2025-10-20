@@ -6,6 +6,8 @@ import 'package:tsakanebov/routes/app_pages.dart';
 import 'package:tsakanebov/routes/app_routes.dart';
 import 'core/config/supabase_config.dart';
 import 'core/constants/app_constants.dart';
+import 'core/services/connectivity_service.dart';
+import 'core/services/sync_service.dart';
 import 'presentation/bindings/auth_binding.dart';
 
 void main() async {
@@ -16,6 +18,22 @@ void main() async {
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
   );
+
+  // Inicializar serviços offline (permanentes)
+  Get.put(ConnectivityService(), permanent: true);
+  Get.put(SyncService(), permanent: true);
+
+  // Cachear animais para uso offline (em background)
+  Future.delayed(const Duration(seconds: 2), () async {
+    try {
+      if (Get.isRegistered<SyncService>()) {
+        await Get.find<SyncService>().cacheAnimaisParaOffline();
+        print('✅ Cache de animais criado com sucesso');
+      }
+    } catch (e) {
+      print('⚠️ Erro ao cachear animais: $e');
+    }
+  });
 
   runApp(MyApp());
 }

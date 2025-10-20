@@ -1,8 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:get/get.dart';
 import '../models/animal_model.dart';
+import '../../core/database/local_database.dart';
+import '../../core/services/connectivity_service.dart';
+import '../../core/services/sync_service.dart';
 
 class AnimalService {
   final _supabase = Supabase.instance.client;
+  final _localDB = LocalDatabase.instance;
 
   // Listar animais com joins
   Future<List<AnimalModel>> listarAnimais({
@@ -60,9 +65,38 @@ class AnimalService {
     }
   }
 
-  // Buscar por brinco
+  // Buscar por brinco (com suporte offline)
   Future<List<AnimalModel>> buscarPorBrinco(String brinco) async {
     try {
+      final connectivityService = Get.find<ConnectivityService>();
+
+      if (!connectivityService.isOnline) {
+        // MODO OFFLINE - Buscar no cache local
+        print('📴 OFFLINE: Buscando animal no cache local');
+
+        final resultados = await _localDB.buscarAnimaisNoCache(brinco);
+
+        if (resultados.isEmpty) {
+          return [];
+        }
+
+        // Converter dados do cache para AnimalModel
+        return resultados.map((data) {
+          return AnimalModel(
+            id: data['id'],
+            brinco: data['brinco'],
+            nome: data['nome'],
+            sexo: data['sexo'],
+            pesoAtualKg: data['peso_atual_kg'],
+            dataNascimento: DateTime.parse(data['data_nascimento']),
+            idadeMeses: data['idade_meses'],
+            grupoNome: data['grupo_nome'],
+          );
+        }).toList();
+      }
+
+      // MODO ONLINE - Buscar no Supabase
+      print('🌐 ONLINE: Buscando animal no Supabase');
       final response = await _supabase
           .from('animais')
           .select('''
@@ -121,9 +155,45 @@ class AnimalService {
     }
   }
 
-  // Criar
+  // Criar (com suporte offline)
   Future<AnimalModel> criar(AnimalModel animal) async {
     try {
+      final connectivityService = Get.find<ConnectivityService>();
+
+      if (!connectivityService.isOnline) {
+        // MODO OFFLINE - Salvar localmente
+        print('📴 OFFLINE: Salvando animal localmente');
+
+        final localId = DateTime.now().millisecondsSinceEpoch.toString();
+        await _localDB.inserirAnimalOffline({
+          'local_id': localId,
+          'brinco': animal.brinco,
+          'nome': animal.nome,
+          'grupo_id': animal.grupoId,
+          'pai_id': animal.paiId,
+          'mae_id': animal.maeId,
+          'sexo': animal.sexo,
+          'tipo_pele': animal.tipoPele,
+          'raca': animal.raca,
+          'data_nascimento': animal.dataNascimento.toIso8601String(),
+          'peso_atual_kg': animal.pesoAtualKg,
+          'url_imagem': animal.urlImagem,
+          'observacoes': animal.observacoes,
+          'status': animal.status ?? 'ativo',
+          'criado_em': DateTime.now().toIso8601String(),
+          'sincronizado': 0,
+        });
+
+        // Atualizar contador de dados não sincronizados
+        if (Get.isRegistered<SyncService>()) {
+          Get.find<SyncService>().atualizarContadorNaoSincronizados();
+        }
+
+        return animal;
+      }
+
+      // MODO ONLINE - Salvar no Supabase
+      print('🌐 ONLINE: Salvando animal no Supabase');
       final response = await _supabase
           .from('animais')
           .insert(animal.toJson())
@@ -139,6 +209,11 @@ class AnimalService {
     } catch (e) {
       throw Exception('Erro ao criar animal: $e');
     }
+  }
+
+  // Método auxiliar para listar animais ativos (usado para cache)
+  Future<List<AnimalModel>> listarAnimaisAtivos() async {
+    return await listarAnimais(apenasAtivos: true);
   }
 
   // Atualizar

@@ -1,12 +1,48 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:get/get.dart';
 import '../models/registro_saude_model.dart';
+import '../../core/database/local_database.dart';
+import '../../core/services/connectivity_service.dart';
+import '../../core/services/sync_service.dart';
 
 class RegistroSaudeService {
   final _supabase = Supabase.instance.client;
+  final _localDB = LocalDatabase.instance;
 
-  // Criar registro
+  // Criar registro (com suporte offline)
   Future<RegistroSaudeModel> criar(RegistroSaudeModel registro) async {
     try {
+      final connectivityService = Get.find<ConnectivityService>();
+
+      if (!connectivityService.isOnline) {
+        // MODO OFFLINE - Salvar localmente
+        print('📴 OFFLINE: Salvando registro de saúde localmente');
+
+        final localId = DateTime.now().millisecondsSinceEpoch.toString();
+        await _localDB.inserirSaudeOffline({
+          'local_id': localId,
+          'animal_id': registro.animalId,
+          'tipo_evento_id': registro.tipoEventoId,
+          'data_evento': registro.dataEvento.toIso8601String(),
+          'descricao': registro.descricao,
+          'veterinario': registro.veterinario,
+          'observacoes': registro.observacoes,
+          'custo': registro.custo,
+          'proxima_aplicacao': registro.proximaAplicacao?.toIso8601String(),
+          'criado_em': DateTime.now().toIso8601String(),
+          'sincronizado': 0,
+        });
+
+        // Atualizar contador de dados não sincronizados
+        if (Get.isRegistered<SyncService>()) {
+          Get.find<SyncService>().atualizarContadorNaoSincronizados();
+        }
+
+        return registro;
+      }
+
+      // MODO ONLINE - Salvar no Supabase
+      print('🌐 ONLINE: Salvando registro de saúde no Supabase');
       final response = await _supabase
           .from('registros_saude')
           .insert(registro.toJson())

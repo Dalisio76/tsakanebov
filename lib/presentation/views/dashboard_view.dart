@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../controllers/dashboard_controller.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/sync_indicator.dart';
 
 class DashboardView extends GetView<DashboardController> {
   @override
@@ -12,6 +13,10 @@ class DashboardView extends GetView<DashboardController> {
       appBar: AppBar(
         title: Text('📊 Dashboard'),
         actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Center(child: SyncIndicator()),
+          ),
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: controller.carregarDashboard,
@@ -20,6 +25,7 @@ class DashboardView extends GetView<DashboardController> {
         ],
       ),
       drawer: AppDrawer(),
+      floatingActionButton: SyncButton(),
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/saude_controller.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/sync_indicator.dart';
 
 class SaudeView extends GetView<SaudeController> {
   const SaudeView({super.key});
@@ -11,6 +12,12 @@ class SaudeView extends GetView<SaudeController> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registrar Evento de Saúde'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(child: SyncIndicator()),
+          ),
+        ],
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
